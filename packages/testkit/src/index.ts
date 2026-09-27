@@ -28,3 +28,7 @@ export {
   type GoldenManifest,
   type Scenario,
 } from "./golden.js";
+
+export { loadGoldens, materializeScenario, type GoldenFixture, type MaterializedScenario } from "./loader.js";
+
+export { E_NOT_IMPLEMENTED, runCli, type CliRunOptions, type CliRunResult } from "./cli-runner.js";
