@@ -14,9 +14,16 @@ Requires Node 22.13+ (see `.nvmrc`) and pnpm (version pinned in `package.json`).
 
 ```sh
 pnpm install
-pnpm build
+pnpm lint
 pnpm typecheck
 pnpm test
+```
+
+Golden fixtures live in `tests/golden/` (see `tests/golden/GOLDEN.md`). If you
+change one on purpose, record it with a higher fixture version:
+
+```sh
+pnpm golden:update --version 0.2.0
 ```
 
 Decisions made during Phase 0 are recorded in `docs/phase-0-decisions.md`.

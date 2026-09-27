@@ -34,3 +34,69 @@ Each entry names the ticket that introduced it.
   before `typecheck` and `test`, so cross-package imports resolve to real output.
 - **Copyright line** in every SPDX header reads "The EngIntel Authors". Change it
   in one pass if a legal entity should hold the copyright.
+
+## Paths (ENG-027)
+
+- **Canonical repo paths exclude `:`.** On Windows it is a drive or
+  alternate-data-stream separator (doc 04 already rejects ADS paths), and in the
+  graph it separates node-id namespaces (`external:`, `core:`, `unresolved:`). A
+  file with `:` in its name is unportable and will be reported as unanalyzable.
+- Paths are also NFC-normalized (doc 19), so macOS and Linux checkouts produce
+  the same violation identities.
+
+## Diagnostic (ENG-002)
+
+- Docs 01 (FR-007), 13, and 27 each define a different Diagnostic. The schema
+  follows **FR-007**: every diagnostic answers what, why, where, which rule,
+  which edge, and the permitted alternative. `suggest` is required and says
+  `kind: "none"` explicitly when there is no legal route.
+- The adapter field is `adapter` (FR-007), not `source` (doc 13).
+- `identity` is always a sha256 hex digest. Adapters without a natural identity
+  hash their fingerprint.
+- Only `severity: "error"` may block. The schema is strict, so `snippet`,
+  `sourceText`, and similar fields are rejected rather than dropped.
+
+## Architecture contract (ENG-023)
+
+- **Doc 06 is the base**, plus `status` (`draft` | `active`, required),
+  `opaqueImports` (`error` | `warn`, default `error`), and `unsupportedPaths`
+  (owned, reasoned allowlist entries).
+- **JSON Schema 2020-12, generated from Zod.** ENG-023 says draft-07 with a Zod
+  mirror; doc 06 says 2020-12 with Zod as the source. Doc 06 wins: it is the
+  normative contract document, and generating the file removes a second source
+  of truth. `schema/*.json` is drift-tested and CODEOWNERS-protected.
+- Globs may not start with `!` (use `excludeGlobs`) and may not contain
+  backslashes (escape with character classes, e.g. `app/[(]marketing[)]/**`).
+- An exclusive `allowed` rule must start from a single `{ layer }`, and each
+  layer may have at most one. The complement semantics in doc 06 are otherwise
+  ambiguous.
+- Rule and layer ids are lowercase kebab-case with no dots, so the `engintel.*`
+  namespace stays reserved for built-in rules.
+- Not yet enforced (Phase 1 loader): micromatch syntax validation, the 180-day
+  exception lifetime warning, and overlapping-layer detection (which needs the
+  file list).
+
+## Trust model (ENG-024)
+
+- **MCP results carry no approval field of any value.** Doc 12 sketched
+  `approved: false`; ENG-024 and the Phase 0 brief say the type must be impossible
+  to construct with `approved` or `mayMerge`. Results instead carry
+  `mergeAuthority: "github-required-check"` (doc 03).
+
+## Golden fixtures (ENG-025)
+
+- Doc 24 says Phase 0 only designs the goldens. They are populated now so that
+  `treeHash` protects real inputs and Phase 1 inherits concrete test cases.
+  `expected.json` stays `{}`.
+- No `baseline.json` yet: the identity function is not settled (see below).
+- Four conflicts between research documents must be resolved before
+  `expected.json` is filled. They are listed in `tests/golden/GOLDEN.md` under
+  *Open questions*: unanalyzable exit code (1 or 2), unanalyzable rule id,
+  policy-weakening rule id, and the identity separator (`\0`, `\n`, or
+  `\u001f`).
+
+## CI (ENG-026)
+
+- Actions are pinned to commit SHAs. Turbo telemetry is disabled in CI.
+- `.github/CODEOWNERS` names `@engintel/architecture-owners`, a placeholder.
+  Replace it before enabling required code-owner review.
