@@ -262,13 +262,20 @@ importers:
         version: 5.0.2(@types/node@22.20.4)(vite@8.3.1(@types/node@22.20.4))
 
   packages/symbols:
-    devDependencies:
-      '@types/node':
-        specifier: 'catalog:'
-        version: 22.20.4
+    dependencies:
+      '@engintel/config':
+        specifier: workspace:*
+        version: link:../config
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
+    devDependencies:
+      '@engintel/testkit':
+        specifier: workspace:*
+        version: link:../testkit
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.20.4
       vite:
         specifier: 'catalog:'
         version: 8.3.1(@types/node@22.20.4)
