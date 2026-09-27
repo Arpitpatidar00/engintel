@@ -74,3 +74,16 @@ export {
   type ConfigIssue,
   type LoadedContract,
 } from "./load.js";
+
+export {
+  CONFIG_PATH,
+  CONFIG_SCHEMA_VERSION,
+  DEFAULT_LIMITS,
+  EngintelConfigSchema,
+  configJsonSchema,
+  loadConfig,
+  parseConfig,
+  type EngintelConfigInput,
+  type LoadedConfig,
+  type ResolvedConfig,
+} from "./engintel-config.js";

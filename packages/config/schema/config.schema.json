@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engintel.dev/schema/config.v1.json",
+  "title": "EngIntel tool configuration",
+  "description": "Tool settings (.engintel/config.json). Policy belongs in architecture.json. The reference loader also refuses secret-looking keys and values, and reserves \"extends\" and \"overlays\".",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "include": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 500,
+        "pattern": "^(?!!)(?!\\/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))(?!(?:.*\\/)?(?:node_modules|\\.git)(?:\\/|$))[^\\0]+$"
+      }
+    },
+    "exclude": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 500,
+        "pattern": "^(?!!)(?!\\/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))(?!(?:.*\\/)?(?:node_modules|\\.git)(?:\\/|$))[^\\0]+$"
+      }
+    },
+    "tsconfig": {
+      "type": "string"
+    },
+    "limits": {
+      "type": "object",
+      "properties": {
+        "maxFiles": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5000000
+        },
+        "maxTotalBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "maxFileBytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 268435456
+        },
+        "graphTimeoutMs": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 3600000
+        }
+      },
+      "additionalProperties": false
+    },
+    "telemetry": {
+      "type": "object",
+      "properties": {
+        "enable": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "enable"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion"
+  ],
+  "additionalProperties": false
+}
