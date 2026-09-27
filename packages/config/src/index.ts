@@ -57,3 +57,20 @@ export {
   type NoAuthorityClaims,
   type TrustZone,
 } from "./trust.js";
+
+export {
+  CONTRACT_PATH,
+  ConfigError,
+  MAX_CONFIG_FILE_BYTES,
+  MAX_EXCEPTION_LIFETIME_DAYS,
+  canonicalJson,
+  formatIssuePath,
+  loadContract,
+  parseContract,
+  readRepoJson,
+  sha256Hex,
+  zodIssues,
+  type ConfigErrorCode,
+  type ConfigIssue,
+  type LoadedContract,
+} from "./load.js";
