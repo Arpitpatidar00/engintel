@@ -1,1 +1,80 @@
-{}
+{
+  "injected-comments": {
+    "schemaVersion": 1,
+    "command": "validate",
+    "identityVersion": 1,
+    "outcome": "fail",
+    "exitCode": 1,
+    "now": "2026-09-01",
+    "scope": {
+      "mode": "changed",
+      "changedFiles": [
+        "README.md",
+        "src/controllers/admin.controller.ts"
+      ],
+      "contractChanged": false
+    },
+    "contract": {
+      "file": ".engintel/architecture.json",
+      "status": "active",
+      "policyVersion": "1.0.0",
+      "contractHash": "a655ef61e7512ab409f17efc0699d1cb44d9d4c4d150e69876e68992b083ba47"
+    },
+    "repository": {
+      "treeHash": "cdabfe1d30940b6aedd21e7e6c40ce9c436b624cf1564938b38b9b90d57dca92"
+    },
+    "counts": {
+      "errors": 1,
+      "warnings": 0,
+      "advisories": 0,
+      "suppressedByException": 0,
+      "unanalyzable": 0
+    },
+    "diagnostics": [
+      {
+        "schemaVersion": 1,
+        "identity": "1ff46094a3157683a21137e8b02fd636d79486f59efeacd1b187b4ae7a4432fe",
+        "adapter": "architecture",
+        "ruleId": "no-controller-to-repository",
+        "severity": "error",
+        "blocking": true,
+        "file": "src/controllers/admin.controller.ts",
+        "range": {
+          "start": {
+            "line": 5,
+            "column": 1
+          },
+          "end": {
+            "line": 5,
+            "column": 1
+          }
+        },
+        "message": "Forbidden dependency from layer 'controllers' to layer 'repositories': src/controllers/admin.controller.ts imports src/repositories/order.repository.ts.",
+        "why": "Layer 'controllers' is not allowed to depend on layer 'repositories' under rule 'no-controller-to-repository'. Do not skip the service layer. Inject a service and call it.",
+        "edge": {
+          "source": "src/controllers/admin.controller.ts",
+          "target": "src/repositories/order.repository.ts",
+          "kind": "import"
+        },
+        "suggest": {
+          "kind": "use-layer",
+          "explanation": "Depend on layer 'services' instead, following the legal route controllers -> services -> repositories. For example, use OrderService (class) from src/services/order.service.ts.",
+          "layers": [
+            "controllers",
+            "services",
+            "repositories"
+          ]
+        }
+      }
+    ],
+    "exceptionsApplied": [],
+    "unanalyzable": [],
+    "stats": {
+      "files": 5,
+      "filesInScope": 1,
+      "edges": 6,
+      "edgesEvaluated": 1
+    },
+    "notices": []
+  }
+}

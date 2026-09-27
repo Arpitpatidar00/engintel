@@ -1,1 +1,104 @@
-{}
+{
+  "changed-export": {
+    "schemaVersion": 1,
+    "command": "validate",
+    "identityVersion": 1,
+    "outcome": "fail",
+    "exitCode": 1,
+    "now": "2026-09-01",
+    "scope": {
+      "mode": "changed",
+      "changedFiles": [
+        "src/services/export.service.ts"
+      ],
+      "contractChanged": false
+    },
+    "contract": {
+      "file": ".engintel/architecture.json",
+      "status": "active",
+      "policyVersion": "1.0.0",
+      "contractHash": "a655ef61e7512ab409f17efc0699d1cb44d9d4c4d150e69876e68992b083ba47"
+    },
+    "repository": {
+      "treeHash": "f911532e3f1821bc67ba8e6e9932069f1231830cb098c09bc03c3e3f87c34d25"
+    },
+    "counts": {
+      "errors": 2,
+      "warnings": 0,
+      "advisories": 0,
+      "suppressedByException": 0,
+      "unanalyzable": 0
+    },
+    "diagnostics": [
+      {
+        "schemaVersion": 1,
+        "identity": "21940b72bc6fde0e74136508df04cd9705717ae2732c08aaaf0b39b9f0b6f938",
+        "adapter": "architecture",
+        "ruleId": "no-unresolved-in-src",
+        "severity": "error",
+        "blocking": true,
+        "file": "src/services/export.service.ts",
+        "range": {
+          "start": {
+            "line": 1,
+            "column": 1
+          },
+          "end": {
+            "line": 1,
+            "column": 1
+          }
+        },
+        "message": "Forbidden dependency: src/services/export.service.ts imports '../lib/csv-writer', which does not resolve.",
+        "why": "Rule 'no-unresolved-in-src' forbids this dependency. Every import in src must resolve to a file or a declared package.",
+        "edge": {
+          "source": "src/services/export.service.ts",
+          "target": "unresolved:src/lib/csv-writer",
+          "kind": "import"
+        },
+        "suggest": {
+          "kind": "none",
+          "explanation": "Fix the import so it resolves. If a build tool resolves it in a way EngIntel cannot see, list the specifier in externals.allowUnresolved (reviewed like policy)."
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "identity": "38df6903a0767195c6168d93ea11daec171fbac2abe1992eb46738ce746b65d4",
+        "adapter": "architecture",
+        "ruleId": "engintel.opaque-import",
+        "severity": "error",
+        "blocking": true,
+        "file": "src/services/export.service.ts",
+        "range": {
+          "start": {
+            "line": 5,
+            "column": 44
+          },
+          "end": {
+            "line": 5,
+            "column": 44
+          }
+        },
+        "message": "Opaque import: src/services/export.service.ts calls import() with a module name computed at runtime.",
+        "why": "EngIntel cannot resolve a non-literal import, so it cannot check it against the contract. opaqueImports is 'error'.",
+        "edge": {
+          "source": "src/services/export.service.ts",
+          "target": "unresolved:*dynamic*",
+          "kind": "dynamic"
+        },
+        "suggest": {
+          "kind": "none",
+          "explanation": "Use a string-literal module specifier, or replace the computed import with a static import."
+        }
+      }
+    ],
+    "exceptionsApplied": [],
+    "unanalyzable": [],
+    "stats": {
+      "files": 5,
+      "filesInScope": 1,
+      "edges": 7,
+      "edgesEvaluated": 2
+    },
+    "notices": []
+  }
+}

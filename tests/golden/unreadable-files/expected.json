@@ -1,1 +1,214 @@
-{}
+{
+  "allowlisted-change": {
+    "schemaVersion": 1,
+    "command": "validate",
+    "identityVersion": 1,
+    "outcome": "pass",
+    "exitCode": 0,
+    "now": "2026-09-01",
+    "scope": {
+      "mode": "changed",
+      "changedFiles": [
+        "src/legacy/vendor-blob.ts"
+      ],
+      "contractChanged": false
+    },
+    "contract": {
+      "file": ".engintel/architecture.json",
+      "status": "active",
+      "policyVersion": "1.0.0",
+      "contractHash": "1c908389ac94d090affde153a52468e33524ccc5066068c476ff9224440cf26a"
+    },
+    "repository": {
+      "treeHash": "c5748d2af5f9298a7716c3614412589a5310d3518c985e97c5b3a4d4286c0272"
+    },
+    "counts": {
+      "errors": 0,
+      "warnings": 0,
+      "advisories": 0,
+      "suppressedByException": 0,
+      "unanalyzable": 0
+    },
+    "diagnostics": [],
+    "exceptionsApplied": [],
+    "unanalyzable": [
+      {
+        "path": "src/legacy/vendor-blob.ts",
+        "reason": "binary",
+        "inScope": true,
+        "allowlisted": true
+      },
+      {
+        "path": "src/services/corrupt.service.ts",
+        "reason": "binary",
+        "inScope": false,
+        "allowlisted": false
+      },
+      {
+        "path": "src/services/truncated.service.ts",
+        "reason": "syntax-error",
+        "inScope": false,
+        "allowlisted": false
+      }
+    ],
+    "stats": {
+      "files": 7,
+      "filesInScope": 1,
+      "edges": 5,
+      "edgesEvaluated": 0
+    },
+    "notices": []
+  },
+  "changed-unanalyzable": {
+    "schemaVersion": 1,
+    "command": "validate",
+    "identityVersion": 1,
+    "outcome": "fail",
+    "exitCode": 1,
+    "now": "2026-09-01",
+    "scope": {
+      "mode": "changed",
+      "changedFiles": [
+        "src/services/corrupt.service.ts",
+        "src/services/truncated.service.ts"
+      ],
+      "contractChanged": false
+    },
+    "contract": {
+      "file": ".engintel/architecture.json",
+      "status": "active",
+      "policyVersion": "1.0.0",
+      "contractHash": "1c908389ac94d090affde153a52468e33524ccc5066068c476ff9224440cf26a"
+    },
+    "repository": {
+      "treeHash": "c5748d2af5f9298a7716c3614412589a5310d3518c985e97c5b3a4d4286c0272"
+    },
+    "counts": {
+      "errors": 2,
+      "warnings": 0,
+      "advisories": 0,
+      "suppressedByException": 0,
+      "unanalyzable": 2
+    },
+    "diagnostics": [
+      {
+        "schemaVersion": 1,
+        "identity": "11dd5af510d90dfe6649deb9f9659419ae7e484fee9cdb5cdaa7b9aeb99bc81f",
+        "adapter": "analyzer",
+        "ruleId": "engintel.unanalyzable",
+        "severity": "error",
+        "blocking": true,
+        "file": "src/services/corrupt.service.ts",
+        "message": "src/services/corrupt.service.ts could not be analyzed (binary).",
+        "why": "EngIntel fails closed: a file it cannot read or parse could hide any dependency, so it is never treated as a pass. The file contains NUL bytes, so it is not source text.",
+        "suggest": {
+          "kind": "none",
+          "explanation": "Make the file analyzable, or add a reviewed unsupportedPaths entry to the contract."
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "identity": "bc7bddc92dd5756c7832890dc4a19038bc787810ddcdcc3e3a21661ad84015be",
+        "adapter": "analyzer",
+        "ruleId": "engintel.unanalyzable",
+        "severity": "error",
+        "blocking": true,
+        "file": "src/services/truncated.service.ts",
+        "message": "src/services/truncated.service.ts could not be analyzed (syntax-error).",
+        "why": "EngIntel fails closed: a file it cannot read or parse could hide any dependency, so it is never treated as a pass. First syntax error: TS1005 at line 5, column 1 (1 syntax error).",
+        "suggest": {
+          "kind": "none",
+          "explanation": "Make the file analyzable, or add a reviewed unsupportedPaths entry to the contract."
+        }
+      }
+    ],
+    "exceptionsApplied": [],
+    "unanalyzable": [
+      {
+        "path": "src/legacy/vendor-blob.ts",
+        "reason": "binary",
+        "inScope": false,
+        "allowlisted": true
+      },
+      {
+        "path": "src/services/corrupt.service.ts",
+        "reason": "binary",
+        "inScope": true,
+        "allowlisted": false
+      },
+      {
+        "path": "src/services/truncated.service.ts",
+        "reason": "syntax-error",
+        "inScope": true,
+        "allowlisted": false
+      }
+    ],
+    "stats": {
+      "files": 7,
+      "filesInScope": 2,
+      "edges": 5,
+      "edgesEvaluated": 0
+    },
+    "notices": []
+  },
+  "unchanged-unanalyzable": {
+    "schemaVersion": 1,
+    "command": "validate",
+    "identityVersion": 1,
+    "outcome": "pass",
+    "exitCode": 0,
+    "now": "2026-09-01",
+    "scope": {
+      "mode": "changed",
+      "changedFiles": [
+        "src/domain/order.ts"
+      ],
+      "contractChanged": false
+    },
+    "contract": {
+      "file": ".engintel/architecture.json",
+      "status": "active",
+      "policyVersion": "1.0.0",
+      "contractHash": "1c908389ac94d090affde153a52468e33524ccc5066068c476ff9224440cf26a"
+    },
+    "repository": {
+      "treeHash": "c5748d2af5f9298a7716c3614412589a5310d3518c985e97c5b3a4d4286c0272"
+    },
+    "counts": {
+      "errors": 0,
+      "warnings": 0,
+      "advisories": 0,
+      "suppressedByException": 0,
+      "unanalyzable": 0
+    },
+    "diagnostics": [],
+    "exceptionsApplied": [],
+    "unanalyzable": [
+      {
+        "path": "src/legacy/vendor-blob.ts",
+        "reason": "binary",
+        "inScope": false,
+        "allowlisted": true
+      },
+      {
+        "path": "src/services/corrupt.service.ts",
+        "reason": "binary",
+        "inScope": false,
+        "allowlisted": false
+      },
+      {
+        "path": "src/services/truncated.service.ts",
+        "reason": "syntax-error",
+        "inScope": false,
+        "allowlisted": false
+      }
+    ],
+    "stats": {
+      "files": 7,
+      "filesInScope": 1,
+      "edges": 5,
+      "edgesEvaluated": 3
+    },
+    "notices": []
+  }
+}

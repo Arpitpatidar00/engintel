@@ -1,1 +1,80 @@
-{}
+{
+  "changed-service": {
+    "schemaVersion": 1,
+    "command": "validate",
+    "identityVersion": 1,
+    "outcome": "pass",
+    "exitCode": 0,
+    "now": "2026-09-01",
+    "scope": {
+      "mode": "changed",
+      "changedFiles": [
+        "src/services/order.service.ts"
+      ],
+      "contractChanged": false
+    },
+    "contract": {
+      "file": ".engintel/architecture.json",
+      "status": "active",
+      "policyVersion": "1.0.0",
+      "contractHash": "a655ef61e7512ab409f17efc0699d1cb44d9d4c4d150e69876e68992b083ba47"
+    },
+    "repository": {
+      "treeHash": "36f384709df386694ea50d56b1d054df2bc198eac763534db24d007ff51834a8"
+    },
+    "counts": {
+      "errors": 0,
+      "warnings": 0,
+      "advisories": 0,
+      "suppressedByException": 0,
+      "unanalyzable": 0
+    },
+    "diagnostics": [],
+    "exceptionsApplied": [],
+    "unanalyzable": [],
+    "stats": {
+      "files": 4,
+      "filesInScope": 1,
+      "edges": 5,
+      "edgesEvaluated": 3
+    },
+    "notices": []
+  },
+  "full": {
+    "schemaVersion": 1,
+    "command": "validate",
+    "identityVersion": 1,
+    "outcome": "pass",
+    "exitCode": 0,
+    "now": "2026-09-01",
+    "scope": {
+      "mode": "full"
+    },
+    "contract": {
+      "file": ".engintel/architecture.json",
+      "status": "active",
+      "policyVersion": "1.0.0",
+      "contractHash": "a655ef61e7512ab409f17efc0699d1cb44d9d4c4d150e69876e68992b083ba47"
+    },
+    "repository": {
+      "treeHash": "36f384709df386694ea50d56b1d054df2bc198eac763534db24d007ff51834a8"
+    },
+    "counts": {
+      "errors": 0,
+      "warnings": 0,
+      "advisories": 0,
+      "suppressedByException": 0,
+      "unanalyzable": 0
+    },
+    "diagnostics": [],
+    "exceptionsApplied": [],
+    "unanalyzable": [],
+    "stats": {
+      "files": 4,
+      "filesInScope": 4,
+      "edges": 5,
+      "edgesEvaluated": 5
+    },
+    "notices": []
+  }
+}

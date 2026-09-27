@@ -1,1 +1,115 @@
-{}
+{
+  "skip-layer": {
+    "schemaVersion": 1,
+    "command": "validate",
+    "identityVersion": 1,
+    "outcome": "fail",
+    "exitCode": 1,
+    "now": "2026-09-01",
+    "scope": {
+      "mode": "changed",
+      "changedFiles": [
+        "src/controllers/audit.controller.ts",
+        "src/controllers/report.controller.ts"
+      ],
+      "contractChanged": false
+    },
+    "contract": {
+      "file": ".engintel/architecture.json",
+      "status": "active",
+      "policyVersion": "1.0.0",
+      "contractHash": "a655ef61e7512ab409f17efc0699d1cb44d9d4c4d150e69876e68992b083ba47"
+    },
+    "repository": {
+      "treeHash": "c6a05a5c8cdfb737ae6fc116020e6ff56fafdc37d4d8b2ad9d3c301d2cda6d4e"
+    },
+    "counts": {
+      "errors": 2,
+      "warnings": 0,
+      "advisories": 0,
+      "suppressedByException": 0,
+      "unanalyzable": 0
+    },
+    "diagnostics": [
+      {
+        "schemaVersion": 1,
+        "identity": "f8daa3052e389d132ce20a6372c81f1dfbe5b0de461f407218bcfc8a57fef82d",
+        "adapter": "architecture",
+        "ruleId": "no-controller-to-repository",
+        "severity": "error",
+        "blocking": true,
+        "file": "src/controllers/audit.controller.ts",
+        "range": {
+          "start": {
+            "line": 1,
+            "column": 1
+          },
+          "end": {
+            "line": 1,
+            "column": 1
+          }
+        },
+        "message": "Forbidden dependency from layer 'controllers' to layer 'repositories': src/controllers/audit.controller.ts imports types from src/repositories/order.repository.ts.",
+        "why": "Layer 'controllers' is not allowed to depend on layer 'repositories' under rule 'no-controller-to-repository'. Do not skip the service layer. Inject a service and call it.",
+        "edge": {
+          "source": "src/controllers/audit.controller.ts",
+          "target": "src/repositories/order.repository.ts",
+          "kind": "type-only"
+        },
+        "suggest": {
+          "kind": "use-layer",
+          "explanation": "Depend on layer 'services' instead, following the legal route controllers -> services -> repositories. For example, use OrderService (class) from src/services/order.service.ts.",
+          "layers": [
+            "controllers",
+            "services",
+            "repositories"
+          ]
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "identity": "775b8f80a39ce67caa667dc9936ac9f154f9fd45ce943d24e7a86a2e56842fb3",
+        "adapter": "architecture",
+        "ruleId": "no-controller-to-repository",
+        "severity": "error",
+        "blocking": true,
+        "file": "src/controllers/report.controller.ts",
+        "range": {
+          "start": {
+            "line": 1,
+            "column": 1
+          },
+          "end": {
+            "line": 1,
+            "column": 1
+          }
+        },
+        "message": "Forbidden dependency from layer 'controllers' to layer 'repositories': src/controllers/report.controller.ts imports src/repositories/order.repository.ts.",
+        "why": "Layer 'controllers' is not allowed to depend on layer 'repositories' under rule 'no-controller-to-repository'. Do not skip the service layer. Inject a service and call it.",
+        "edge": {
+          "source": "src/controllers/report.controller.ts",
+          "target": "src/repositories/order.repository.ts",
+          "kind": "import"
+        },
+        "suggest": {
+          "kind": "use-layer",
+          "explanation": "Depend on layer 'services' instead, following the legal route controllers -> services -> repositories. For example, use OrderService (class) from src/services/order.service.ts.",
+          "layers": [
+            "controllers",
+            "services",
+            "repositories"
+          ]
+        }
+      }
+    ],
+    "exceptionsApplied": [],
+    "unanalyzable": [],
+    "stats": {
+      "files": 6,
+      "filesInScope": 2,
+      "edges": 7,
+      "edgesEvaluated": 2
+    },
+    "notices": []
+  }
+}

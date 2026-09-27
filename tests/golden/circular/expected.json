@@ -1,1 +1,114 @@
-{}
+{
+  "changed-discount": {
+    "schemaVersion": 1,
+    "command": "validate",
+    "identityVersion": 1,
+    "outcome": "fail",
+    "exitCode": 1,
+    "now": "2026-09-01",
+    "scope": {
+      "mode": "changed",
+      "changedFiles": [
+        "src/domain/discount.ts"
+      ],
+      "contractChanged": false
+    },
+    "contract": {
+      "file": ".engintel/architecture.json",
+      "status": "active",
+      "policyVersion": "1.0.0",
+      "contractHash": "a655ef61e7512ab409f17efc0699d1cb44d9d4c4d150e69876e68992b083ba47"
+    },
+    "repository": {
+      "treeHash": "16a251cc309fe4bf0fa2f6043fb1e063218fd1700c208d5a286fcd040a51d075"
+    },
+    "counts": {
+      "errors": 1,
+      "warnings": 0,
+      "advisories": 0,
+      "suppressedByException": 0,
+      "unanalyzable": 0
+    },
+    "diagnostics": [
+      {
+        "schemaVersion": 1,
+        "identity": "3bc295c65c75f2a04943dc11f997d83a1be92708518918b5c14fa77d37c532ff",
+        "adapter": "architecture",
+        "ruleId": "acyclic-domain",
+        "severity": "error",
+        "blocking": true,
+        "file": "src/domain/discount.ts",
+        "message": "Import cycle in layer 'domain': src/domain/discount.ts -> src/domain/pricing.ts -> src/domain/discount.ts.",
+        "why": "Cycle inside layer 'domain': src/domain/discount.ts -> src/domain/pricing.ts. Rule 'acyclic-domain'. Domain module cycles hide ownership. Break the cycle or extract a types module.",
+        "cycleSignature": "src/domain/discount.ts -> src/domain/pricing.ts",
+        "suggest": {
+          "kind": "split-module",
+          "explanation": "Break the cycle: move what both files need into a module that neither imports back, or invert one of the dependencies."
+        }
+      }
+    ],
+    "exceptionsApplied": [],
+    "unanalyzable": [],
+    "stats": {
+      "files": 6,
+      "filesInScope": 1,
+      "edges": 7,
+      "edgesEvaluated": 2
+    },
+    "notices": []
+  },
+  "full": {
+    "schemaVersion": 1,
+    "command": "validate",
+    "identityVersion": 1,
+    "outcome": "fail",
+    "exitCode": 1,
+    "now": "2026-09-01",
+    "scope": {
+      "mode": "full"
+    },
+    "contract": {
+      "file": ".engintel/architecture.json",
+      "status": "active",
+      "policyVersion": "1.0.0",
+      "contractHash": "a655ef61e7512ab409f17efc0699d1cb44d9d4c4d150e69876e68992b083ba47"
+    },
+    "repository": {
+      "treeHash": "16a251cc309fe4bf0fa2f6043fb1e063218fd1700c208d5a286fcd040a51d075"
+    },
+    "counts": {
+      "errors": 1,
+      "warnings": 0,
+      "advisories": 0,
+      "suppressedByException": 0,
+      "unanalyzable": 0
+    },
+    "diagnostics": [
+      {
+        "schemaVersion": 1,
+        "identity": "3bc295c65c75f2a04943dc11f997d83a1be92708518918b5c14fa77d37c532ff",
+        "adapter": "architecture",
+        "ruleId": "acyclic-domain",
+        "severity": "error",
+        "blocking": true,
+        "file": "src/domain/discount.ts",
+        "message": "Import cycle in layer 'domain': src/domain/discount.ts -> src/domain/pricing.ts -> src/domain/discount.ts.",
+        "why": "Cycle inside layer 'domain': src/domain/discount.ts -> src/domain/pricing.ts. Rule 'acyclic-domain'. Domain module cycles hide ownership. Break the cycle or extract a types module.",
+        "cycleSignature": "src/domain/discount.ts -> src/domain/pricing.ts",
+        "suggest": {
+          "kind": "split-module",
+          "explanation": "Break the cycle: move what both files need into a module that neither imports back, or invert one of the dependencies."
+        }
+      }
+    ],
+    "exceptionsApplied": [],
+    "unanalyzable": [],
+    "stats": {
+      "files": 6,
+      "filesInScope": 6,
+      "edges": 7,
+      "edgesEvaluated": 7
+    },
+    "notices": []
+  }
+}

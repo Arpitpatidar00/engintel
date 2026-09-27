@@ -4,9 +4,11 @@ Nine small repositories that pin down what EngIntel must do. Phase 1 and 2
 tickets are done when these fixtures produce the outcomes below, and not before
 (research doc 01, section 7).
 
-**Phase 0 status:** the inputs are final for `fixtureVersion` 0.1.0. Every
-`expected.json` is `{}`. Phase 1 fills them in once the diagnostic wording,
-identity function, and exit codes are settled (see *Open questions*).
+**Phase 1 status:** the inputs are final for `fixtureVersion` 0.1.0.
+`expected.json` is filled for `valid-architecture`, `circular`,
+`invalid-layer`, `unresolved`, `exceptions`, `prompt-injection`, and
+`unreadable-files`. `existing-violations` and `policy-change` stay `{}` until
+baselines (ENG-009) and policy-change detection (ENG-012) land in Phase 2.
 
 ## Layout
 
@@ -19,7 +21,7 @@ tests/golden/
     scenarios/*.json     how to run it: changed files, clock, base, overlay
     base/                (optional) merge-base versions of changed files
     overlays/<name>/     (optional) files copied over repo/ before running
-    expected.json        {} until Phase 1; then keyed by scenario name
+    expected.json        keyed by scenario name, or {} while deferred
 ```
 
 Every `repo/` shares one small app and one contract: `controllers` may use
@@ -59,6 +61,21 @@ pnpm golden:update --version 0.2.0   # must be greater than the current version
 
 Change a fixture only when a requirement changes. Never edit a fixture to make
 an implementation pass.
+
+## Expected results
+
+Each scenario's entry in `expected.json` is the full `engintel validate` JSON
+report for that scenario, minus `engineVersion`. The test in
+`packages/orchestrator/test/golden.test.ts` runs every scenario on a temporary
+copy, compares the report, checks it again against a pinned pass/fail table,
+and runs it twice to prove the output is byte-identical.
+
+`expected.json` is not part of `treeHash`. After an intended change to wording
+or behaviour, regenerate it and review the diff line by line:
+
+```sh
+ENGINTEL_UPDATE_EXPECTED=1 pnpm --filter @engintel/orchestrator test
+```
 
 ## Fixtures
 
@@ -163,17 +180,17 @@ is on the contract's `unsupportedPaths` allowlist.
 Permission-denied files cannot be committed (git does not store read
 permissions). ENG-036 creates them at test time in a temporary copy.
 
-## Open questions
+## Resolved questions
 
-The research documents disagree on these points, and each one changes what
-`expected.json` must contain. Settle them in the named ticket first.
+The research documents disagreed on these points. Phase 1 settled them as
+follows (see `docs/phase-1-decisions.md`).
 
-1. **Exit code for unanalyzable changed files** (ENG-036). FR-020 and doc 07
-   say exit 1 with a blocking diagnostic; docs 23 and 30 say `status=error`,
-   exit 2.
-2. **Built-in unanalyzable rule id** (ENG-032). `engine.unanalyzable` (FR-020)
-   or `engintel.unanalyzable` (doc 07).
-3. **Policy weakening rule id** (ENG-012). `policy.weakening` (FR-012) or
-   `policy.change` (ENG-012, doc 30).
-4. **Violation identity separator** (ENG-035). `\0` (doc 08), `\n` (doc 19), or
-   `\u001f` (ENG-035). Every baseline depends on it.
+1. **Exit code for unanalyzable changed files:** exit 1 with a blocking
+   diagnostic (FR-020, doc 07). Exit 2 is reserved for tool and configuration
+   errors, where no verdict can be given at all.
+2. **Built-in unanalyzable rule id:** `engintel.unanalyzable` (doc 07). All
+   built-in rules use the `engintel.` prefix, which contract ids cannot use.
+3. **Policy weakening rule id:** deferred to ENG-012 in Phase 2, together with
+   `policy-change/expected.json`.
+4. **Violation identity separator:** `\u001f` (ENG-035), `identityVersion: 1`.
+   Known-answer vectors live in `packages/policy/testdata/identity-vectors.json`.
