@@ -1,5 +1,27 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 The EngIntel Authors
 
-// Phase 0: intentionally empty. See docs/phase-0-decisions.md.
-export {};
+export {
+  GRAPH_SCHEMA_VERSION,
+  buildAdjacency,
+  compareEdges,
+  importersOf,
+  importsOf,
+  reverseReachable,
+  serializeGraph,
+  type Adjacency,
+  type GraphEdge,
+  type GraphNode,
+  type ModuleGraph,
+  type NodeKind,
+} from "./model.js";
+
+export {
+  GraphError,
+  buildModuleGraph,
+  normalizeCruiseResult,
+  packageName,
+  type BuildGraphOptions,
+  type CruiseFn,
+  type GraphErrorCode,
+} from "./cruise.js";
