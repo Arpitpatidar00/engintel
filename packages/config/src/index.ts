@@ -47,3 +47,13 @@ export {
   type ArchitectureRule,
   type LayerRef,
 } from "./architecture.js";
+
+export {
+  FORBIDDEN_AUTHORITY_KEYS,
+  MERGE_AUTHORITY,
+  TRUST_ZONES,
+  findAuthorityClaims,
+  type ForbiddenAuthorityKey,
+  type NoAuthorityClaims,
+  type TrustZone,
+} from "./trust.js";
