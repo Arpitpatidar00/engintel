@@ -29,3 +29,21 @@ export {
   type EdgeKind,
   type Severity,
 } from "./diagnostic.js";
+
+export {
+  ARCHITECTURE_SCHEMA_VERSION,
+  ArchitectureContractSchema,
+  CONTRACT_SEVERITIES,
+  ExceptionSchema,
+  GLOB_PATTERN,
+  LayerRefSchema,
+  LayerSchema,
+  NamingRuleSchema,
+  RuleSchema,
+  UnsupportedPathSchema,
+  architectureJsonSchema,
+  type ArchitectureContract,
+  type ArchitectureContractInput,
+  type ArchitectureRule,
+  type LayerRef,
+} from "./architecture.js";

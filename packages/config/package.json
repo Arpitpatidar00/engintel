@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "ajv": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:"

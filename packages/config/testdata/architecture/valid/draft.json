@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "policyVersion": "0.1.0",
+  "status": "draft",
+  "layers": [
+    {
+      "id": "ui",
+      "globs": [
+        "src/ui/**"
+      ]
+    },
+    {
+      "id": "data",
+      "globs": [
+        "src/data/**"
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "no-ui-to-data",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": {
+        "layer": "ui"
+      },
+      "to": {
+        "layer": "data"
+      },
+      "comment": "UI talks to data through the application layer."
+    }
+  ],
+  "description": "Written by engintel init. Not enforced until a human sets status to active."
+}

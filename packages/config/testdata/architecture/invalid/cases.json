@@ -1,0 +1,319 @@
+{
+  "unknown-top-level-key": {
+    "level": "schema",
+    "path": [],
+    "why": "unknown fields are rejected, not ignored"
+  },
+  "unknown-rule-field": {
+    "level": "schema",
+    "path": [
+      "rules",
+      3
+    ],
+    "why": "unknown fields are rejected at every depth"
+  },
+  "schema-version-2": {
+    "level": "schema",
+    "path": [
+      "schemaVersion"
+    ],
+    "why": "only schemaVersion 1 exists"
+  },
+  "policy-version-not-semver": {
+    "level": "schema",
+    "path": [
+      "policyVersion"
+    ],
+    "why": "policyVersion is semver"
+  },
+  "missing-status": {
+    "level": "schema",
+    "path": [
+      "status"
+    ],
+    "why": "draft vs active must be explicit"
+  },
+  "empty-rules": {
+    "level": "schema",
+    "path": [
+      "rules"
+    ],
+    "why": "a contract with no rules enforces nothing"
+  },
+  "unknown-rule-kind": {
+    "level": "schema",
+    "path": [
+      "rules",
+      0
+    ],
+    "why": "rule kinds are a closed set"
+  },
+  "rule-severity-invalid": {
+    "level": "schema",
+    "path": [
+      "rules",
+      3,
+      "severity"
+    ],
+    "why": "severity is error, warn, or advisory"
+  },
+  "layer-id-uppercase": {
+    "level": "schema",
+    "path": [
+      "layers",
+      0,
+      "id"
+    ],
+    "why": "ids are lowercase kebab-case"
+  },
+  "glob-node-modules": {
+    "level": "schema",
+    "path": [
+      "layers",
+      0,
+      "globs",
+      0
+    ],
+    "why": "globs may not target node_modules"
+  },
+  "glob-git-dir": {
+    "level": "schema",
+    "path": [
+      "layers",
+      0,
+      "globs",
+      0
+    ],
+    "why": "globs may not target .git"
+  },
+  "glob-parent-dir": {
+    "level": "schema",
+    "path": [
+      "layers",
+      0,
+      "globs",
+      0
+    ],
+    "why": "globs may not leave the repository"
+  },
+  "glob-absolute": {
+    "level": "schema",
+    "path": [
+      "layers",
+      0,
+      "globs",
+      0
+    ],
+    "why": "globs are repo-relative"
+  },
+  "glob-negated": {
+    "level": "schema",
+    "path": [
+      "layers",
+      0,
+      "globs",
+      0
+    ],
+    "why": "negation belongs in excludeGlobs"
+  },
+  "glob-backslash": {
+    "level": "schema",
+    "path": [
+      "layers",
+      0,
+      "globs",
+      0
+    ],
+    "why": "globs use POSIX separators"
+  },
+  "layer-without-globs": {
+    "level": "schema",
+    "path": [
+      "layers",
+      0,
+      "globs"
+    ],
+    "why": "a layer must match something"
+  },
+  "exception-reason-too-short": {
+    "level": "schema",
+    "path": [
+      "exceptions",
+      0,
+      "reason"
+    ],
+    "why": "\"fix ci\" is not a reason"
+  },
+  "exception-missing-expiry": {
+    "level": "schema",
+    "path": [
+      "exceptions",
+      0,
+      "expiresAt"
+    ],
+    "why": "every exception expires"
+  },
+  "exception-bad-owner": {
+    "level": "schema",
+    "path": [
+      "exceptions",
+      0,
+      "owner"
+    ],
+    "why": "owners are @user or @org/team"
+  },
+  "exception-month-13": {
+    "level": "schema",
+    "path": [
+      "exceptions",
+      0,
+      "expiresAt"
+    ],
+    "why": "dates are YYYY-MM-DD"
+  },
+  "opaque-imports-off": {
+    "level": "schema",
+    "path": [
+      "opaqueImports"
+    ],
+    "why": "opaque imports can be error or warn, never off"
+  },
+  "unsupported-path-no-owner": {
+    "level": "schema",
+    "path": [
+      "unsupportedPaths",
+      0,
+      "owner"
+    ],
+    "why": "unsupported paths are owned and reviewed"
+  },
+  "unsupported-path-short-reason": {
+    "level": "schema",
+    "path": [
+      "unsupportedPaths",
+      0,
+      "reason"
+    ],
+    "why": "unsupported paths need a real reason"
+  },
+  "duplicate-layer-id": {
+    "level": "invariant",
+    "path": [
+      "layers",
+      1,
+      "id"
+    ],
+    "why": "layer ids are unique"
+  },
+  "duplicate-rule-id": {
+    "level": "invariant",
+    "path": [
+      "rules",
+      4,
+      "id"
+    ],
+    "why": "rule ids are unique (they are part of violation identity)"
+  },
+  "naming-id-collides-with-rule": {
+    "level": "invariant",
+    "path": [
+      "naming",
+      0,
+      "id"
+    ],
+    "why": "naming and rule ids share one namespace"
+  },
+  "unknown-layer-reference": {
+    "level": "invariant",
+    "path": [
+      "rules",
+      3,
+      "to",
+      "layer"
+    ],
+    "why": "rules may only reference declared layers"
+  },
+  "unknown-layer-in-list": {
+    "level": "invariant",
+    "path": [
+      "rules",
+      4,
+      "to",
+      "layers",
+      1
+    ],
+    "why": "every layer in a list must exist"
+  },
+  "naming-unknown-layer": {
+    "level": "invariant",
+    "path": [
+      "naming",
+      0,
+      "layer"
+    ],
+    "why": "naming rules reference declared layers"
+  },
+  "ownership-unknown-layer": {
+    "level": "invariant",
+    "path": [
+      "ownership",
+      "layers",
+      "handlers"
+    ],
+    "why": "ownership references declared layers"
+  },
+  "exception-unknown-rule": {
+    "level": "invariant",
+    "path": [
+      "exceptions",
+      0,
+      "ruleId"
+    ],
+    "why": "exceptions must name an existing rule"
+  },
+  "exception-expires-before-added": {
+    "level": "invariant",
+    "path": [
+      "exceptions",
+      0,
+      "expiresAt"
+    ],
+    "why": "expiresAt must be after addedAt"
+  },
+  "exception-impossible-date": {
+    "level": "schema",
+    "path": [
+      "exceptions",
+      0,
+      "expiresAt"
+    ],
+    "why": "dates must exist on the calendar"
+  },
+  "exclusive-allow-twice": {
+    "level": "invariant",
+    "path": [
+      "rules",
+      1,
+      "from"
+    ],
+    "why": "one exclusive allowed rule per layer"
+  },
+  "exclusive-allow-from-glob": {
+    "level": "invariant",
+    "path": [
+      "rules",
+      0,
+      "from"
+    ],
+    "why": "exclusive allowed rules start from one layer"
+  },
+  "naming-bad-regex": {
+    "level": "invariant",
+    "path": [
+      "naming",
+      0,
+      "symbolPattern"
+    ],
+    "why": "symbolPattern must compile"
+  }
+}

@@ -1,0 +1,1198 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engintel.dev/schema/architecture.v1.json",
+  "title": "EngIntel architecture contract",
+  "description": "Human-owned architecture policy (.engintel/architecture.json). The reference loader also enforces: unique layer, rule, naming and exception ids; every referenced layer exists; exceptions reference an existing rule and expire after they were added; at most one exclusive allowed rule per layer; symbolPattern compiles.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "policyVersion": {
+      "type": "string",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "active"
+      ]
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 4000
+    },
+    "layers": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,63}$"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "globs": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 500,
+              "pattern": "^(?!!)(?!\\/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))(?!(?:.*\\/)?(?:node_modules|\\.git)(?:\\/|$))[^\\0]+$"
+            }
+          },
+          "excludeGlobs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 500,
+              "pattern": "^(?!!)(?!\\/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))(?!(?:.*\\/)?(?:node_modules|\\.git)(?:\\/|$))[^\\0]+$"
+            }
+          },
+          "intraAllowed": {
+            "default": true,
+            "type": "boolean"
+          },
+          "owner": {
+            "type": "string",
+            "pattern": "^@[A-Za-z0-9][A-Za-z0-9-]*(?:\\/[A-Za-z0-9._-]+)?$"
+          }
+        },
+        "required": [
+          "id",
+          "globs"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "rules": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{1,63}$"
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "error",
+                  "warn",
+                  "advisory"
+                ]
+              },
+              "comment": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "enabled": {
+                "default": true,
+                "type": "boolean"
+              },
+              "kind": {
+                "type": "string",
+                "const": "forbidden"
+              },
+              "from": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "layer": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9-]{1,63}$"
+                      }
+                    },
+                    "required": [
+                      "layer"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "layers": {
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9-]{1,63}$"
+                        }
+                      }
+                    },
+                    "required": [
+                      "layers"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "glob": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "pattern": "^(?!!)(?!\\/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))(?!(?:.*\\/)?(?:node_modules|\\.git)(?:\\/|$))[^\\0]+$"
+                      }
+                    },
+                    "required": [
+                      "glob"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "external": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 214
+                      }
+                    },
+                    "required": [
+                      "external"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "unresolved": {
+                        "type": "boolean",
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "unresolved"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "to": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "layer": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9-]{1,63}$"
+                      }
+                    },
+                    "required": [
+                      "layer"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "layers": {
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9-]{1,63}$"
+                        }
+                      }
+                    },
+                    "required": [
+                      "layers"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "glob": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "pattern": "^(?!!)(?!\\/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))(?!(?:.*\\/)?(?:node_modules|\\.git)(?:\\/|$))[^\\0]+$"
+                      }
+                    },
+                    "required": [
+                      "glob"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "external": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 214
+                      }
+                    },
+                    "required": [
+                      "external"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "unresolved": {
+                        "type": "boolean",
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "unresolved"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "direction": {
+                "default": "forward",
+                "type": "string",
+                "enum": [
+                  "forward",
+                  "backward",
+                  "both"
+                ]
+              },
+              "ignoreTypeOnly": {
+                "default": false,
+                "type": "boolean"
+              },
+              "ignoreDynamic": {
+                "default": false,
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "severity",
+              "comment",
+              "kind",
+              "from",
+              "to"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{1,63}$"
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "error",
+                  "warn",
+                  "advisory"
+                ]
+              },
+              "comment": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "enabled": {
+                "default": true,
+                "type": "boolean"
+              },
+              "kind": {
+                "type": "string",
+                "const": "allowed"
+              },
+              "from": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "layer": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9-]{1,63}$"
+                      }
+                    },
+                    "required": [
+                      "layer"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "layers": {
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9-]{1,63}$"
+                        }
+                      }
+                    },
+                    "required": [
+                      "layers"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "glob": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "pattern": "^(?!!)(?!\\/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))(?!(?:.*\\/)?(?:node_modules|\\.git)(?:\\/|$))[^\\0]+$"
+                      }
+                    },
+                    "required": [
+                      "glob"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "external": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 214
+                      }
+                    },
+                    "required": [
+                      "external"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "unresolved": {
+                        "type": "boolean",
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "unresolved"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "to": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "layer": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9-]{1,63}$"
+                      }
+                    },
+                    "required": [
+                      "layer"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "layers": {
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9-]{1,63}$"
+                        }
+                      }
+                    },
+                    "required": [
+                      "layers"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "glob": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "pattern": "^(?!!)(?!\\/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))(?!(?:.*\\/)?(?:node_modules|\\.git)(?:\\/|$))[^\\0]+$"
+                      }
+                    },
+                    "required": [
+                      "glob"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "external": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 214
+                      }
+                    },
+                    "required": [
+                      "external"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "unresolved": {
+                        "type": "boolean",
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "unresolved"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "exclusive": {
+                "default": false,
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "severity",
+              "comment",
+              "kind",
+              "from",
+              "to"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{1,63}$"
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "error",
+                  "warn",
+                  "advisory"
+                ]
+              },
+              "comment": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "enabled": {
+                "default": true,
+                "type": "boolean"
+              },
+              "kind": {
+                "type": "string",
+                "const": "required"
+              },
+              "from": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "layer": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9-]{1,63}$"
+                      }
+                    },
+                    "required": [
+                      "layer"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "layers": {
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9-]{1,63}$"
+                        }
+                      }
+                    },
+                    "required": [
+                      "layers"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "glob": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "pattern": "^(?!!)(?!\\/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))(?!(?:.*\\/)?(?:node_modules|\\.git)(?:\\/|$))[^\\0]+$"
+                      }
+                    },
+                    "required": [
+                      "glob"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "external": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 214
+                      }
+                    },
+                    "required": [
+                      "external"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "unresolved": {
+                        "type": "boolean",
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "unresolved"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "to": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "layer": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9-]{1,63}$"
+                      }
+                    },
+                    "required": [
+                      "layer"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "layers": {
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9-]{1,63}$"
+                        }
+                      }
+                    },
+                    "required": [
+                      "layers"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "glob": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "pattern": "^(?!!)(?!\\/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))(?!(?:.*\\/)?(?:node_modules|\\.git)(?:\\/|$))[^\\0]+$"
+                      }
+                    },
+                    "required": [
+                      "glob"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "external": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 214
+                      }
+                    },
+                    "required": [
+                      "external"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "unresolved": {
+                        "type": "boolean",
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "unresolved"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "severity",
+              "comment",
+              "kind",
+              "from",
+              "to"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{1,63}$"
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "error",
+                  "warn",
+                  "advisory"
+                ]
+              },
+              "comment": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "enabled": {
+                "default": true,
+                "type": "boolean"
+              },
+              "kind": {
+                "type": "string",
+                "const": "acyclic"
+              },
+              "within": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "layer": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9-]{1,63}$"
+                      }
+                    },
+                    "required": [
+                      "layer"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "layers": {
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9-]{1,63}$"
+                        }
+                      }
+                    },
+                    "required": [
+                      "layers"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "glob": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "pattern": "^(?!!)(?!\\/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))(?!(?:.*\\/)?(?:node_modules|\\.git)(?:\\/|$))[^\\0]+$"
+                      }
+                    },
+                    "required": [
+                      "glob"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "external": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 214
+                      }
+                    },
+                    "required": [
+                      "external"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "unresolved": {
+                        "type": "boolean",
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "unresolved"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "severity",
+              "comment",
+              "kind",
+              "within"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9-]{1,63}$"
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "error",
+                  "warn",
+                  "advisory"
+                ]
+              },
+              "comment": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000
+              },
+              "enabled": {
+                "default": true,
+                "type": "boolean"
+              },
+              "kind": {
+                "type": "string",
+                "const": "reachable"
+              },
+              "from": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "layer": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9-]{1,63}$"
+                      }
+                    },
+                    "required": [
+                      "layer"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "layers": {
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9-]{1,63}$"
+                        }
+                      }
+                    },
+                    "required": [
+                      "layers"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "glob": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "pattern": "^(?!!)(?!\\/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))(?!(?:.*\\/)?(?:node_modules|\\.git)(?:\\/|$))[^\\0]+$"
+                      }
+                    },
+                    "required": [
+                      "glob"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "external": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 214
+                      }
+                    },
+                    "required": [
+                      "external"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "unresolved": {
+                        "type": "boolean",
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "unresolved"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              },
+              "to": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "layer": {
+                        "type": "string",
+                        "pattern": "^[a-z][a-z0-9-]{1,63}$"
+                      }
+                    },
+                    "required": [
+                      "layer"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "layers": {
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9-]{1,63}$"
+                        }
+                      }
+                    },
+                    "required": [
+                      "layers"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "glob": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "pattern": "^(?!!)(?!\\/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))(?!(?:.*\\/)?(?:node_modules|\\.git)(?:\\/|$))[^\\0]+$"
+                      }
+                    },
+                    "required": [
+                      "glob"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "external": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 214
+                      }
+                    },
+                    "required": [
+                      "external"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "unresolved": {
+                        "type": "boolean",
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "unresolved"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "severity",
+              "comment",
+              "kind",
+              "from",
+              "to"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "exceptions": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,63}$"
+          },
+          "ruleId": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,63}$"
+          },
+          "source": {
+            "type": "string",
+            "maxLength": 500,
+            "pattern": "^(?!!)(?!\\/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))(?!(?:.*\\/)?(?:node_modules|\\.git)(?:\\/|$))[^\\0]+$"
+          },
+          "target": {
+            "type": "string",
+            "maxLength": 500,
+            "pattern": "^(?!!)(?!\\/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))(?!(?:.*\\/)?(?:node_modules|\\.git)(?:\\/|$))[^\\0]+$"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 2000
+          },
+          "owner": {
+            "type": "string",
+            "pattern": "^@[A-Za-z0-9][A-Za-z0-9-]*(?:\\/[A-Za-z0-9._-]+)?$"
+          },
+          "addedAt": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          }
+        },
+        "required": [
+          "id",
+          "ruleId",
+          "source",
+          "target",
+          "reason",
+          "owner",
+          "addedAt",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "naming": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,63}$"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "error",
+              "warn",
+              "advisory"
+            ]
+          },
+          "layer": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,63}$"
+          },
+          "filePattern": {
+            "type": "string",
+            "maxLength": 500,
+            "pattern": "^(?!!)(?!\\/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))(?!(?:.*\\/)?(?:node_modules|\\.git)(?:\\/|$))[^\\0]+$"
+          },
+          "symbolPattern": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "comment": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "id",
+          "severity",
+          "layer",
+          "filePattern",
+          "comment"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "ownership": {
+      "type": "object",
+      "properties": {
+        "policyCodeowners": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^@[A-Za-z0-9][A-Za-z0-9-]*(?:\\/[A-Za-z0-9._-]+)?$"
+          }
+        },
+        "layers": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,63}$"
+          },
+          "additionalProperties": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^@[A-Za-z0-9][A-Za-z0-9-]*(?:\\/[A-Za-z0-9._-]+)?$"
+            }
+          }
+        }
+      },
+      "required": [
+        "policyCodeowners"
+      ],
+      "additionalProperties": false
+    },
+    "unlayered": {
+      "type": "object",
+      "properties": {
+        "severity": {
+          "type": "string",
+          "enum": [
+            "error",
+            "warn",
+            "advisory"
+          ]
+        },
+        "comment": {
+          "type": "string",
+          "maxLength": 2000
+        }
+      },
+      "required": [
+        "severity"
+      ],
+      "additionalProperties": false
+    },
+    "externals": {
+      "type": "object",
+      "properties": {
+        "collapseSubpaths": {
+          "default": true,
+          "type": "boolean"
+        },
+        "allowUnresolved": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "opaqueImports": {
+      "default": "error",
+      "type": "string",
+      "enum": [
+        "error",
+        "warn"
+      ]
+    },
+    "unsupportedPaths": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "glob": {
+            "type": "string",
+            "maxLength": 500,
+            "pattern": "^(?!!)(?!\\/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))(?!(?:.*\\/)?(?:node_modules|\\.git)(?:\\/|$))[^\\0]+$"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 2000
+          },
+          "owner": {
+            "type": "string",
+            "pattern": "^@[A-Za-z0-9][A-Za-z0-9-]*(?:\\/[A-Za-z0-9._-]+)?$"
+          }
+        },
+        "required": [
+          "glob",
+          "reason",
+          "owner"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "policyVersion",
+    "status",
+    "layers",
+    "rules"
+  ],
+  "additionalProperties": false
+}

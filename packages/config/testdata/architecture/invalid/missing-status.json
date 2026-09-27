@@ -1,0 +1,230 @@
+{
+  "$schema": "https://engintel.dev/schema/architecture.v1.json",
+  "schemaVersion": 1,
+  "policyVersion": "1.0.0",
+  "description": "HTTP controllers call services; services call repositories; never skip layers; never reverse.",
+  "layers": [
+    {
+      "id": "controllers",
+      "description": "HTTP/GraphQL adapters",
+      "globs": [
+        "src/controllers/**/*.ts",
+        "src/**/*.controller.ts"
+      ],
+      "intraAllowed": true,
+      "owner": "@platform-api"
+    },
+    {
+      "id": "services",
+      "description": "Application services",
+      "globs": [
+        "src/services/**/*.ts",
+        "src/**/*.service.ts"
+      ],
+      "excludeGlobs": [
+        "src/**/*.service.spec.ts"
+      ],
+      "intraAllowed": true,
+      "owner": "@platform-api"
+    },
+    {
+      "id": "repositories",
+      "description": "Persistence",
+      "globs": [
+        "src/repositories/**/*.ts",
+        "src/**/*.repository.ts"
+      ],
+      "intraAllowed": true,
+      "owner": "@platform-data"
+    },
+    {
+      "id": "domain",
+      "description": "Pure types and entities",
+      "globs": [
+        "src/domain/**/*.ts"
+      ],
+      "intraAllowed": true,
+      "owner": "@platform-data"
+    },
+    {
+      "id": "tests",
+      "globs": [
+        "**/*.spec.ts",
+        "**/*.test.ts",
+        "test/**/*.ts"
+      ],
+      "intraAllowed": true
+    }
+  ],
+  "rules": [
+    {
+      "id": "controllers-may-import-services",
+      "kind": "allowed",
+      "exclusive": true,
+      "severity": "error",
+      "from": {
+        "layer": "controllers"
+      },
+      "to": {
+        "layers": [
+          "services",
+          "domain"
+        ]
+      },
+      "comment": "Controllers orchestrate HTTP only. They must not reach repositories."
+    },
+    {
+      "id": "services-may-import-repositories",
+      "kind": "allowed",
+      "exclusive": true,
+      "severity": "error",
+      "from": {
+        "layer": "services"
+      },
+      "to": {
+        "layers": [
+          "repositories",
+          "domain",
+          "services"
+        ]
+      },
+      "comment": "Services own persistence access and domain types."
+    },
+    {
+      "id": "repositories-may-import-domain",
+      "kind": "allowed",
+      "exclusive": true,
+      "severity": "error",
+      "from": {
+        "layer": "repositories"
+      },
+      "to": {
+        "layers": [
+          "domain"
+        ]
+      },
+      "comment": "Repositories map domain entities to storage. They must not import services or controllers."
+    },
+    {
+      "id": "no-controller-to-repository",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": {
+        "layer": "controllers"
+      },
+      "to": {
+        "layer": "repositories"
+      },
+      "direction": "forward",
+      "comment": "Do not skip the service layer. Inject a service and call it."
+    },
+    {
+      "id": "no-upward-from-domain",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": {
+        "layer": "domain"
+      },
+      "to": {
+        "layers": [
+          "controllers",
+          "services",
+          "repositories"
+        ]
+      },
+      "comment": "Domain stays pure."
+    },
+    {
+      "id": "acyclic-domain",
+      "kind": "acyclic",
+      "severity": "error",
+      "within": {
+        "layer": "domain"
+      },
+      "comment": "Domain module cycles hide ownership. Break the cycle or extract a types module."
+    },
+    {
+      "id": "no-unresolved-in-src",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": {
+        "glob": "src/**"
+      },
+      "to": {
+        "unresolved": true
+      },
+      "comment": "Every import in src must resolve."
+    },
+    {
+      "id": "tests-may-import-anything",
+      "kind": "allowed",
+      "exclusive": false,
+      "severity": "advisory",
+      "from": {
+        "layer": "tests"
+      },
+      "to": {
+        "layers": [
+          "controllers",
+          "services",
+          "repositories",
+          "domain"
+        ]
+      },
+      "comment": "Tests are unrestricted in MVP."
+    }
+  ],
+  "exceptions": [
+    {
+      "id": "ex-health-controller-repo",
+      "ruleId": "no-controller-to-repository",
+      "source": "src/controllers/health.controller.ts",
+      "target": "src/repositories/health.repository.ts",
+      "reason": "Health check reads DB liveness without a service to avoid masking service-layer outages.",
+      "owner": "@platform-api",
+      "addedAt": "2026-01-15",
+      "expiresAt": "2026-07-15"
+    }
+  ],
+  "naming": [
+    {
+      "id": "controller-suffix",
+      "severity": "advisory",
+      "layer": "controllers",
+      "filePattern": "**/*.controller.ts",
+      "symbolPattern": "^[A-Z].*Controller$",
+      "comment": "Filename and exported class should match Nest convention."
+    }
+  ],
+  "ownership": {
+    "policyCodeowners": [
+      "@platform-architecture"
+    ],
+    "layers": {
+      "controllers": [
+        "@platform-api"
+      ],
+      "repositories": [
+        "@platform-data"
+      ]
+    }
+  },
+  "unlayered": {
+    "severity": "warn",
+    "comment": "New files should land in a layer glob. Unlayered is tolerated during migration."
+  },
+  "externals": {
+    "collapseSubpaths": true,
+    "allowUnresolved": [
+      "@generated/*"
+    ]
+  },
+  "opaqueImports": "error",
+  "unsupportedPaths": [
+    {
+      "glob": "src/legacy/generated-parser.ts",
+      "reason": "Generated by a grammar tool; not valid TypeScript until the migration in PAY-4410.",
+      "owner": "@platform-data"
+    }
+  ]
+}

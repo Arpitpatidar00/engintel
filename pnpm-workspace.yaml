@@ -13,6 +13,7 @@ catalog:
   vite: 8.3.1
   vitest: 5.0.2
   zod: 4.6.5
+  ajv: 8.20.0
   # Reserved for ENG-005 (@engintel/graph is its only consumer). Pinned now so
   # Phase 1 does not pick a version ad hoc; not installed until referenced.
   dependency-cruiser: 18.4.0
