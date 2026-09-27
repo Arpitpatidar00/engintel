@@ -29,7 +29,14 @@ export const IDENTITY_SEPARATOR = "\u001f";
  * themselves. Appending a token is safe: `<name>` is already a fixed point of
  * repo-path normalization, so no existing identity changes.
  */
-export const IDENTITY_TOKENS = ["<missing>", "<unanalyzable>", "<unreachable-from>", "<unlayered>", "<overlapping-layers>"] as const;
+export const IDENTITY_TOKENS = [
+  "<missing>",
+  "<unanalyzable>",
+  "<unreachable-from>",
+  "<unlayered>",
+  "<overlapping-layers>",
+  "<unportable-path>",
+] as const;
 
 export interface IdentityInput {
   readonly ruleId: string;

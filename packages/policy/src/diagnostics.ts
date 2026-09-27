@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 The EngIntel Authors
 
-import { DIAGNOSTIC_SCHEMA_VERSION, type Diagnostic, type EdgeKind } from "@engintel/config";
+import { DIAGNOSTIC_SCHEMA_VERSION, isCanonicalRepoPath, type Diagnostic, type EdgeKind } from "@engintel/config";
 import { violationIdentity } from "./identity.js";
 
 /**
@@ -255,19 +255,24 @@ export function unreachable(facts: {
   };
 }
 
-/** arch.unanalyzable (D-009): fail closed on a file that cannot be read or parsed. */
+/**
+ * arch.unanalyzable (D-009): fail closed on a file that cannot be read or
+ * parsed. A path that cannot even be canonicalized (e.g. it contains ":")
+ * has no stable identity of its own and is reported under <unportable-path>.
+ */
 export function unanalyzableFile(facts: { readonly file: string; readonly reason: string; readonly detail: string }): Violation {
+  const canonical = isCanonicalRepoPath(facts.file);
   return {
     ruleId: BUILTIN_RULES.unanalyzable,
     severity: "error",
     adapter: "analyzer",
-    source: facts.file,
+    source: canonical ? facts.file : "<unportable-path>",
     target: "<unanalyzable>",
     cycleSignature: null,
-    file: facts.file,
+    file: canonical ? facts.file : null,
     position: null,
     edgeKind: null,
-    message: `${facts.file} could not be analyzed (${facts.reason}).`,
+    message: `${canonical ? facts.file : JSON.stringify(facts.file)} could not be analyzed (${facts.reason}).`,
     why: join(
       "EngIntel fails closed: a file it cannot read or parse could hide any dependency, so it is never treated as a pass",
       facts.detail,

@@ -368,6 +368,12 @@ describe("fail closed on unanalyzable files (D-009)", () => {
     ]);
   });
 
+  test("a path that cannot be canonicalized still fails closed, without crashing the identity", () => {
+    const r = run({ edges: CLEAN, files: [{ path: "src/a:b.ts", unanalyzable: { reason: "unportable-path", detail: "The path is not portable." } }] });
+    expect(r.outcome).toBe("fail");
+    expect(r.diagnostics[0]).toMatchObject({ ruleId: "engintel.unanalyzable", file: null, message: '"src/a:b.ts" could not be analyzed (unportable-path).' });
+  });
+
   test("no exception can waive an unanalyzable file: built-in rule ids are not contract ids", () => {
     const bad = {
       id: "ex-unanalyzable",
