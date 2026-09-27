@@ -21,8 +21,8 @@ catalog:
   eslint: 10.11.0
   "@eslint/js": 10.0.1
   typescript-eslint: 8.70.1
-  # Reserved for ENG-005 (@engintel/graph is its only consumer). Pinned now so
-  # Phase 1 does not pick a version ad hoc; not installed until referenced.
+  fast-check: 4.10.2
+  # @engintel/graph is its only consumer (enforced by the workspace policy test).
   dependency-cruiser: 18.4.0
 
 # Fail the install if any dependency wants to run a build script that has not

@@ -25,3 +25,5 @@ export {
   type CruiseFn,
   type GraphErrorCode,
 } from "./cruise.js";
+
+export { canonicalRotation, cycleSignature, cyclicComponents, findCycles, type Cycle, type CycleOptions } from "./cycles.js";

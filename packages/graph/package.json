@@ -30,6 +30,7 @@
   "devDependencies": {
     "@engintel/testkit": "workspace:*",
     "@types/node": "catalog:",
+    "fast-check": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:"
   }
