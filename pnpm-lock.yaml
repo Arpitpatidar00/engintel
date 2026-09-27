@@ -195,7 +195,26 @@ importers:
         version: 5.0.2(@types/node@22.20.4)(vite@8.3.1(@types/node@22.20.4))
 
   packages/orchestrator:
+    dependencies:
+      '@engintel/config':
+        specifier: workspace:*
+        version: link:../config
+      '@engintel/graph':
+        specifier: workspace:*
+        version: link:../graph
+      '@engintel/policy':
+        specifier: workspace:*
+        version: link:../policy
+      '@engintel/scanner':
+        specifier: workspace:*
+        version: link:../scanner
+      '@engintel/symbols':
+        specifier: workspace:*
+        version: link:../symbols
     devDependencies:
+      '@engintel/testkit':
+        specifier: workspace:*
+        version: link:../testkit
       '@types/node':
         specifier: 'catalog:'
         version: 22.20.4

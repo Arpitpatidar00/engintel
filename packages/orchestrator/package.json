@@ -1,6 +1,6 @@
 {
   "name": "@engintel/orchestrator",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "Validation orchestrator: runs adapters, normalizes diagnostics, applies fail-closed policy.",
   "license": "Apache-2.0",
@@ -22,7 +22,15 @@
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run --passWithNoTests"
   },
+  "dependencies": {
+    "@engintel/config": "workspace:*",
+    "@engintel/graph": "workspace:*",
+    "@engintel/policy": "workspace:*",
+    "@engintel/scanner": "workspace:*",
+    "@engintel/symbols": "workspace:*"
+  },
   "devDependencies": {
+    "@engintel/testkit": "workspace:*",
     "@types/node": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
