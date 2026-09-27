@@ -12,3 +12,20 @@ export {
   toRepoRelative,
   type RepoPathErrorCode,
 } from "./paths.js";
+
+export {
+  ADAPTERS,
+  DIAGNOSTIC_SCHEMA_VERSION,
+  DiagnosticSchema,
+  EDGE_KINDS,
+  FORBIDDEN_DIAGNOSTIC_KEYS,
+  NodeRefSchema,
+  RepoPathSchema,
+  SEVERITIES,
+  SUGGESTION_KINDS,
+  diagnosticJsonSchema,
+  type Adapter,
+  type Diagnostic,
+  type EdgeKind,
+  type Severity,
+} from "./diagnostic.js";

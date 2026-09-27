@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engintel.dev/schema/diagnostic.v1.json",
+  "title": "EngIntel diagnostic",
+  "description": "One finding from any EngIntel adapter. Additional rules enforced by the reference implementation: blocking implies severity \"error\"; a range requires a file.",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "identity": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "adapter": {
+      "type": "string",
+      "enum": [
+        "architecture",
+        "policy",
+        "analyzer",
+        "tsc",
+        "eslint",
+        "test",
+        "semgrep",
+        "jscpd",
+        "knip",
+        "pattern"
+      ]
+    },
+    "ruleId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^[A-Za-z0-9@][A-Za-z0-9._:/@-]*$"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "error",
+        "warning",
+        "info",
+        "advisory"
+      ]
+    },
+    "blocking": {
+      "type": "boolean"
+    },
+    "file": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^(?!\\/)(?!.*[\\\\:])(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))[^\\0]+$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "range": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "object",
+          "properties": {
+            "line": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "column": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "line",
+            "column"
+          ],
+          "additionalProperties": false
+        },
+        "end": {
+          "type": "object",
+          "properties": {
+            "line": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "column": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "line",
+            "column"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "additionalProperties": false
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "why": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "edge": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(?!\\/)(?!.*[\\\\:])(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))[^\\0]+$"
+            },
+            {
+              "type": "string",
+              "pattern": "^(external|core|unresolved):\\S.*$"
+            },
+            {
+              "type": "string",
+              "pattern": "^<[a-z][a-z-]*>$"
+            }
+          ]
+        },
+        "target": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^(?!\\/)(?!.*[\\\\:])(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))[^\\0]+$"
+            },
+            {
+              "type": "string",
+              "pattern": "^(external|core|unresolved):\\S.*$"
+            },
+            {
+              "type": "string",
+              "pattern": "^<[a-z][a-z-]*>$"
+            }
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "import",
+            "type-only",
+            "re-export",
+            "dynamic",
+            "require",
+            "triple-slash",
+            "implicit"
+          ]
+        }
+      },
+      "required": [
+        "source",
+        "target",
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "cycleSignature": {
+      "type": "string",
+      "minLength": 1
+    },
+    "suggest": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "use-layer",
+            "introduce-facade",
+            "move-file",
+            "split-module",
+            "none"
+          ]
+        },
+        "explanation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "layers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "kind",
+        "explanation"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "identity",
+    "adapter",
+    "ruleId",
+    "severity",
+    "blocking",
+    "file",
+    "message",
+    "why",
+    "suggest"
+  ],
+  "additionalProperties": false
+}
