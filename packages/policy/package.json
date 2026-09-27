@@ -23,10 +23,13 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@engintel/config": "workspace:*"
+    "@engintel/config": "workspace:*",
+    "@engintel/graph": "workspace:*",
+    "picomatch": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
+    "@types/picomatch": "catalog:",
     "fast-check": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",

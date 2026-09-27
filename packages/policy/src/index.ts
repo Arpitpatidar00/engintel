@@ -12,3 +12,42 @@ export {
   violationIdentity,
   type IdentityInput,
 } from "./identity.js";
+
+export {
+  compareDiagnostics,
+  evaluate,
+  type EvaluationInput,
+  type EvaluationResult,
+  type ExceptionApplication,
+  type ExportedSymbol,
+  type FileFacts,
+  type ImportSite,
+  type Scope,
+  type SourceFileState,
+  type UnanalyzableEntry,
+} from "./evaluate.js";
+
+export {
+  BUILTIN_RULES,
+  cycleViolation,
+  forbiddenEdge,
+  intraLayerEdge,
+  missingRequired,
+  notAllowedEdge,
+  opaqueImport,
+  overlappingLayers,
+  toDiagnostic,
+  unanalyzableFile,
+  unlayeredFile,
+  unreachable,
+  unresolvedImport,
+  type ContractSeverity,
+  type EdgeFacts,
+  type ExampleSymbol,
+  type Position,
+  type Suggestion,
+  type Violation,
+} from "./diagnostics.js";
+
+export { LayerIndex, describeRef, globMatcher, matchesAnyGlob, refLayers } from "./layers.js";
+export { LayerGraph, allowedTargets } from "./routes.js";

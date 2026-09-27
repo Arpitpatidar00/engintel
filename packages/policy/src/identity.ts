@@ -24,8 +24,12 @@ import { normalizeRepoPath, toPosix } from "@engintel/config";
 export const IDENTITY_VERSION = 1;
 export const IDENTITY_SEPARATOR = "\u001f";
 
-/** Built-in targets that are not paths (doc 08, section 3.3). They normalize to themselves. */
-export const IDENTITY_TOKENS = ["<missing>", "<unanalyzable>", "<unreachable-from>"] as const;
+/**
+ * Built-in targets that are not paths (doc 08, section 3.3). They normalize to
+ * themselves. Appending a token is safe: `<name>` is already a fixed point of
+ * repo-path normalization, so no existing identity changes.
+ */
+export const IDENTITY_TOKENS = ["<missing>", "<unanalyzable>", "<unreachable-from>", "<unlayered>", "<overlapping-layers>"] as const;
 
 export interface IdentityInput {
   readonly ruleId: string;
