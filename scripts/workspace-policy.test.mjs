@@ -236,6 +236,53 @@ describe("dependency graph", () => {
   });
 });
 
+describe("CI and ownership", () => {
+  const workflowDir = join(ROOT, ".github", "workflows");
+  const workflows = readdirSync(workflowDir)
+    .filter((f) => /\.ya?ml$/.test(f))
+    .map((f) => ({ file: f, text: readFileSync(join(workflowDir, f), "utf8") }));
+
+  test("at least one workflow exists", () => {
+    assert.ok(workflows.length > 0);
+  });
+
+  for (const { file, text } of workflows) {
+    test(`${file} uses no secrets and never pull_request_target`, () => {
+      assert.ok(!/\$\{\{[^}]*\bsecrets\./.test(text), "workflows must not read secrets");
+      assert.ok(!/^\s*secrets:\s*inherit/m.test(text), "workflows must not pass secrets to reusable workflows");
+      assert.ok(!/pull_request_target/.test(text), "pull_request_target runs untrusted code with secrets (doc 16)");
+    });
+
+    test(`${file} defaults to read-only repository contents`, () => {
+      assert.match(text, /^permissions:\s*\n\s+contents:\s*read\s*$/m);
+    });
+
+    test(`${file} pins every action to a full commit SHA`, () => {
+      const unpinned = [...text.matchAll(/uses:\s*(\S+)/g)]
+        .map((m) => m[1])
+        .filter((ref) => !ref.startsWith("./") && !/@[0-9a-f]{40}$/.test(ref));
+      assert.deepEqual(unpinned, []);
+    });
+  }
+
+  test("ci.yml runs lint, typecheck, and test on pull requests", () => {
+    const ci = workflows.find((w) => w.file === "ci.yml")?.text ?? "";
+    assert.match(ci, /^\s+pull_request:/m);
+    for (const step of ["pnpm lint", "pnpm typecheck", "pnpm test"]) assert.ok(ci.includes(step), `missing ${step}`);
+  });
+
+  test("CODEOWNERS covers policy code and the published schemas", () => {
+    const owners = readFileSync(join(ROOT, ".github", "CODEOWNERS"), "utf8")
+      .split("\n")
+      .filter((line) => line.trim() && !line.trim().startsWith("#"))
+      .map((line) => line.trim().split(/\s+/));
+    for (const path of ["/packages/policy/", "/packages/config/schema/"]) {
+      const entry = owners.find(([pattern]) => pattern === path);
+      assert.ok(entry && entry.length > 1 && entry.slice(1).every((o) => o.startsWith("@")), `${path} needs an owner`);
+    }
+  });
+});
+
 /** Returns why a package directory looks native, or null if it looks pure JS/WASM. */
 function nativeIndicator(dir) {
   if (existsSync(join(dir, "binding.gyp"))) return "has binding.gyp";
