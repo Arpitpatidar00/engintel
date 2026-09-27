@@ -1,0 +1,330 @@
+{
+  "$comment": "Known-answer vectors for violationIdentity (ENG-035). APPEND-ONLY: never edit or reorder an entry; a changed identity is a new identityVersion and a baseline migration. identity = sha256_hex(utf8(normalized.join(U+001F))).",
+  "identityVersion": 1,
+  "algorithm": "sha256",
+  "separator": "\u001f",
+  "vectors": [
+    {
+      "id": 1,
+      "name": "forbidden edge",
+      "input": {
+        "ruleId": "no-controller-to-repository",
+        "source": "src/controllers/report.controller.ts",
+        "target": "src/repositories/order.repository.ts",
+        "cycleSignature": null
+      },
+      "normalized": [
+        "no-controller-to-repository",
+        "src/controllers/report.controller.ts",
+        "src/repositories/order.repository.ts",
+        ""
+      ],
+      "identity": "775b8f80a39ce67caa667dc9936ac9f154f9fd45ce943d24e7a86a2e56842fb3"
+    },
+    {
+      "id": 2,
+      "name": "empty cycle signature equals omitted",
+      "input": {
+        "ruleId": "no-controller-to-repository",
+        "source": "src/controllers/report.controller.ts",
+        "target": "src/repositories/order.repository.ts",
+        "cycleSignature": ""
+      },
+      "normalized": [
+        "no-controller-to-repository",
+        "src/controllers/report.controller.ts",
+        "src/repositories/order.repository.ts",
+        ""
+      ],
+      "identity": "775b8f80a39ce67caa667dc9936ac9f154f9fd45ce943d24e7a86a2e56842fb3"
+    },
+    {
+      "id": 3,
+      "name": "cycle signature key absent equals omitted",
+      "input": {
+        "ruleId": "no-controller-to-repository",
+        "source": "src/controllers/report.controller.ts",
+        "target": "src/repositories/order.repository.ts"
+      },
+      "normalized": [
+        "no-controller-to-repository",
+        "src/controllers/report.controller.ts",
+        "src/repositories/order.repository.ts",
+        ""
+      ],
+      "identity": "775b8f80a39ce67caa667dc9936ac9f154f9fd45ce943d24e7a86a2e56842fb3"
+    },
+    {
+      "id": 4,
+      "name": "Windows spelling hashes like POSIX",
+      "input": {
+        "ruleId": "no-controller-to-repository",
+        "source": "src\\controllers\\report.controller.ts",
+        "target": ".\\src\\repositories\\order.repository.ts",
+        "cycleSignature": null
+      },
+      "normalized": [
+        "no-controller-to-repository",
+        "src/controllers/report.controller.ts",
+        "src/repositories/order.repository.ts",
+        ""
+      ],
+      "identity": "775b8f80a39ce67caa667dc9936ac9f154f9fd45ce943d24e7a86a2e56842fb3"
+    },
+    {
+      "id": 5,
+      "name": "redundant segments normalize",
+      "input": {
+        "ruleId": "no-controller-to-repository",
+        "source": "./src//controllers/./report.controller.ts",
+        "target": "src/x/../repositories/order.repository.ts",
+        "cycleSignature": null
+      },
+      "normalized": [
+        "no-controller-to-repository",
+        "src/controllers/report.controller.ts",
+        "src/repositories/order.repository.ts",
+        ""
+      ],
+      "identity": "775b8f80a39ce67caa667dc9936ac9f154f9fd45ce943d24e7a86a2e56842fb3"
+    },
+    {
+      "id": 6,
+      "name": "ruleId is part of the identity",
+      "input": {
+        "ruleId": "no-repository-upward",
+        "source": "src/controllers/report.controller.ts",
+        "target": "src/repositories/order.repository.ts",
+        "cycleSignature": null
+      },
+      "normalized": [
+        "no-repository-upward",
+        "src/controllers/report.controller.ts",
+        "src/repositories/order.repository.ts",
+        ""
+      ],
+      "identity": "a575a80daac361209734f30f8fe49a111047271276e8dcb94a22679e7b403652"
+    },
+    {
+      "id": 7,
+      "name": "direction matters",
+      "input": {
+        "ruleId": "no-controller-to-repository",
+        "source": "src/repositories/order.repository.ts",
+        "target": "src/controllers/report.controller.ts",
+        "cycleSignature": null
+      },
+      "normalized": [
+        "no-controller-to-repository",
+        "src/repositories/order.repository.ts",
+        "src/controllers/report.controller.ts",
+        ""
+      ],
+      "identity": "826d23815cc7ab699800f067c04ed4ce599a1f1f3706ca4043631e175735d0b8"
+    },
+    {
+      "id": 8,
+      "name": "two-node cycle",
+      "input": {
+        "ruleId": "acyclic-domain",
+        "source": "src/domain/discount.ts",
+        "target": "src/domain/pricing.ts",
+        "cycleSignature": "src/domain/discount.ts -> src/domain/pricing.ts"
+      },
+      "normalized": [
+        "acyclic-domain",
+        "src/domain/discount.ts",
+        "src/domain/pricing.ts",
+        "src/domain/discount.ts -> src/domain/pricing.ts"
+      ],
+      "identity": "3bc295c65c75f2a04943dc11f997d83a1be92708518918b5c14fa77d37c532ff"
+    },
+    {
+      "id": 9,
+      "name": "three-node cycle over the same pair is a different debt",
+      "input": {
+        "ruleId": "acyclic-domain",
+        "source": "src/a.ts",
+        "target": "src/c.ts",
+        "cycleSignature": "src/a.ts -> src/b.ts -> src/c.ts"
+      },
+      "normalized": [
+        "acyclic-domain",
+        "src/a.ts",
+        "src/c.ts",
+        "src/a.ts -> src/b.ts -> src/c.ts"
+      ],
+      "identity": "13d4520de77abc5817c6173fed9b9d1d683b6d78c133c145175005f8a67279b2"
+    },
+    {
+      "id": 10,
+      "name": "coarse cycle signature",
+      "input": {
+        "ruleId": "acyclic-domain",
+        "source": "src/a.ts",
+        "target": "src/c.ts",
+        "cycleSignature": "{src/a.ts, src/b.ts, src/c.ts}"
+      },
+      "normalized": [
+        "acyclic-domain",
+        "src/a.ts",
+        "src/c.ts",
+        "{src/a.ts, src/b.ts, src/c.ts}"
+      ],
+      "identity": "402e704d52fa7f70c4a7170b6904edd869d6bae7d725d7f83d458e0216aeecbe"
+    },
+    {
+      "id": 11,
+      "name": "unresolved target",
+      "input": {
+        "ruleId": "no-unresolved-in-src",
+        "source": "src/services/export.service.ts",
+        "target": "unresolved:src/lib/csv-writer",
+        "cycleSignature": null
+      },
+      "normalized": [
+        "no-unresolved-in-src",
+        "src/services/export.service.ts",
+        "unresolved:src/lib/csv-writer",
+        ""
+      ],
+      "identity": "21940b72bc6fde0e74136508df04cd9705717ae2732c08aaaf0b39b9f0b6f938"
+    },
+    {
+      "id": 12,
+      "name": "opaque import target",
+      "input": {
+        "ruleId": "engintel.opaque-import",
+        "source": "src/services/export.service.ts",
+        "target": "unresolved:*dynamic*",
+        "cycleSignature": null
+      },
+      "normalized": [
+        "engintel.opaque-import",
+        "src/services/export.service.ts",
+        "unresolved:*dynamic*",
+        ""
+      ],
+      "identity": "38df6903a0767195c6168d93ea11daec171fbac2abe1992eb46738ce746b65d4"
+    },
+    {
+      "id": 13,
+      "name": "package names are case-folded",
+      "input": {
+        "ruleId": "no-orm-in-domain",
+        "source": "src/domain/order.ts",
+        "target": "external:TypeORM",
+        "cycleSignature": null
+      },
+      "normalized": [
+        "no-orm-in-domain",
+        "src/domain/order.ts",
+        "external:typeorm",
+        ""
+      ],
+      "identity": "704f5ff96bc0fdaf76e1ce74076e7f8b1ee4ab9f93338c182924a0ad641fee2a"
+    },
+    {
+      "id": 14,
+      "name": "scoped package names are case-folded",
+      "input": {
+        "ruleId": "no-orm-in-domain",
+        "source": "src/domain/order.ts",
+        "target": "external:@Prisma/Client",
+        "cycleSignature": null
+      },
+      "normalized": [
+        "no-orm-in-domain",
+        "src/domain/order.ts",
+        "external:@prisma/client",
+        ""
+      ],
+      "identity": "8099973345c96ce7f496720cd39f3aa4ca09adecf10149615d1b5cfa03cb71af"
+    },
+    {
+      "id": 15,
+      "name": "core module",
+      "input": {
+        "ruleId": "no-fs-in-domain",
+        "source": "src/domain/order.ts",
+        "target": "core:fs",
+        "cycleSignature": null
+      },
+      "normalized": [
+        "no-fs-in-domain",
+        "src/domain/order.ts",
+        "core:fs",
+        ""
+      ],
+      "identity": "f12d3bba2cffff5785b1b780d187df8b36e524e6746bb1de542a8efbe9e5fc2d"
+    },
+    {
+      "id": 16,
+      "name": "unanalyzable token",
+      "input": {
+        "ruleId": "engintel.unanalyzable",
+        "source": "src/services/corrupt.service.ts",
+        "target": "<unanalyzable>",
+        "cycleSignature": null
+      },
+      "normalized": [
+        "engintel.unanalyzable",
+        "src/services/corrupt.service.ts",
+        "<unanalyzable>",
+        ""
+      ],
+      "identity": "11dd5af510d90dfe6649deb9f9659419ae7e484fee9cdb5cdaa7b9aeb99bc81f"
+    },
+    {
+      "id": 17,
+      "name": "required-rule token",
+      "input": {
+        "ruleId": "services-use-repositories",
+        "source": "src/services/order.service.ts",
+        "target": "<missing>",
+        "cycleSignature": null
+      },
+      "normalized": [
+        "services-use-repositories",
+        "src/services/order.service.ts",
+        "<missing>",
+        ""
+      ],
+      "identity": "a682ba4b4b304574b3333b1208b7fe8a6f93f5c71e97bb89200e4b25263484ad"
+    },
+    {
+      "id": 18,
+      "name": "NFD path hashes like NFC",
+      "input": {
+        "ruleId": "no-controller-to-repository",
+        "source": "src/café.ts",
+        "target": "src/repositories/order.repository.ts",
+        "cycleSignature": null
+      },
+      "normalized": [
+        "no-controller-to-repository",
+        "src/café.ts",
+        "src/repositories/order.repository.ts",
+        ""
+      ],
+      "identity": "042ef0a7d6a4d8736511f185cd90a9d878eb203219a912da94e2d11089d6eb17"
+    },
+    {
+      "id": 19,
+      "name": "non-ASCII path",
+      "input": {
+        "ruleId": "no-controller-to-repository",
+        "source": "src/控制器/订单.ts",
+        "target": "src/repositories/order.repository.ts",
+        "cycleSignature": null
+      },
+      "normalized": [
+        "no-controller-to-repository",
+        "src/控制器/订单.ts",
+        "src/repositories/order.repository.ts",
+        ""
+      ],
+      "identity": "fa95a70e17fd607a038242b1dc5f24cb2b38fd8d8d58e739164f5e4e4a15fd91"
+    }
+  ]
+}
