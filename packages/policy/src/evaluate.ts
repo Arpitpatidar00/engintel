@@ -213,6 +213,7 @@ export function evaluate(input: EvaluationInput): EvaluationResult {
     position: positionOf(edge),
     suggest: suggestFor(edge, srcLayer, dstLayer),
     expired,
+    specifier: edge.specifier,
   });
 
   // Files: overlapping layers, unanalyzable, unlayered.

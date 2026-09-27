@@ -313,6 +313,7 @@ describe("unresolved and opaque imports", () => {
       ["engintel.opaque-import", 5, "unresolved:*dynamic*"],
     ]);
     expect(r.outcome).toBe("fail");
+    expect(r.diagnostics[0]?.message).toBe("Forbidden dependency: src/services/export.service.ts imports '../lib/csv-writer', which does not resolve.");
   });
 
   test("opaqueImports: warn reports without blocking", () => {

@@ -74,6 +74,8 @@ export interface EdgeFacts {
   readonly suggest: Suggestion;
   /** An exception matched this violation but had expired. */
   readonly expired?: { readonly id: string; readonly expiresAt: string } | undefined;
+  /** The import specifier, shown for unresolved targets. */
+  readonly specifier?: string | undefined;
 }
 
 const SEVERITY: Record<ContractSeverity, Diagnostic["severity"]> = { error: "error", warn: "warning", advisory: "advisory" };
@@ -120,9 +122,10 @@ function edgeViolation(facts: EdgeFacts, message: string, why: string): Violatio
 /** arch.forbidden-edge */
 export function forbiddenEdge(facts: EdgeFacts): Violation {
   const layered = facts.srcLayer !== null && facts.dstLayer !== null;
+  const target = facts.to.startsWith("unresolved:") && facts.specifier ? `'${facts.specifier}', which does not resolve` : facts.to;
   const message = layered
-    ? `Forbidden dependency from layer '${facts.srcLayer}' to layer '${facts.dstLayer}': ${facts.from} ${verb(facts)} ${facts.to}.`
-    : `Forbidden dependency: ${facts.from} ${verb(facts)} ${facts.to}.`;
+    ? `Forbidden dependency from layer '${facts.srcLayer}' to layer '${facts.dstLayer}': ${facts.from} ${verb(facts)} ${target}.`
+    : `Forbidden dependency: ${facts.from} ${verb(facts)} ${target}.`;
   const why = layered
     ? join(`Layer '${facts.srcLayer}' is not allowed to depend on layer '${facts.dstLayer}' under rule '${facts.ruleId}'`, facts.comment, expiredNote(facts.expired))
     : join(`Rule '${facts.ruleId}' forbids this dependency`, facts.comment, expiredNote(facts.expired));
