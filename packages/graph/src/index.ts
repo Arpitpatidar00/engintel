@@ -21,6 +21,7 @@ export {
   buildModuleGraph,
   normalizeCruiseResult,
   packageName,
+  safeSpecifier,
   type BuildGraphOptions,
   type CruiseFn,
   type GraphErrorCode,

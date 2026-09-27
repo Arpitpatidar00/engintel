@@ -14,7 +14,8 @@ import type { EdgeKind } from "@engintel/config";
  *                            or a resolved file outside the repository root
  *   core:<name>              a Node.js builtin ("node:fs" and "fs" -> core:fs)
  *   unresolved:<specifier>   a specifier that could not be resolved; relative
- *                            specifiers are normalized against the importer
+ *                            specifiers are normalized against the importer, and
+ *                            implausible ones become *invalid-specifier:<digest>*
  */
 
 export type NodeKind = "module" | "external" | "core" | "unresolved";
@@ -29,7 +30,7 @@ export interface GraphEdge {
   readonly from: string;
   readonly to: string;
   readonly kind: EdgeKind;
-  /** The specifier as written in the source. */
+  /** The specifier as written in the source, or a digest placeholder when it is implausible (see safeSpecifier). */
   readonly specifier: string;
   readonly isTypeOnly: boolean;
   readonly isDynamic: boolean;

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 The EngIntel Authors
 
+import { createHash } from "node:crypto";
 import { existsSync, realpathSync } from "node:fs";
 import { dirname, join, posix, resolve } from "node:path";
 import { RepoPathError, normalizeRepoPath, type EdgeKind } from "@engintel/config";
@@ -167,6 +168,20 @@ function isRelative(specifier: string): boolean {
   return specifier === "." || specifier === ".." || specifier.startsWith("./") || specifier.startsWith("../");
 }
 
+/**
+ * Module specifiers come from repository source, which is untrusted. An
+ * unresolved specifier is echoed into node ids and from there into
+ * diagnostics, so one that does not look like a module path (whitespace,
+ * control characters, prose, over-long) is replaced by a digest. Legitimate
+ * specifiers pass through unchanged.
+ */
+const PLAUSIBLE_SPECIFIER = /^[A-Za-z0-9@._~#$%+=,!/-]{1,214}$/;
+
+export function safeSpecifier(specifier: string): string {
+  if (PLAUSIBLE_SPECIFIER.test(specifier)) return specifier;
+  return `*invalid-specifier:${createHash("sha256").update(specifier, "utf8").digest("hex").slice(0, 16)}*`;
+}
+
 /** The node id for a module cruiser reports, from the importer's point of view when it is unresolved. */
 function nodeFor(
   entry: { resolved: string; module?: string; coreModule?: boolean; couldNotResolve?: boolean; dependencyTypes?: string[] },
@@ -177,12 +192,14 @@ function nodeFor(
   if (entry.couldNotResolve) {
     if (importer !== null && isRelative(spec)) {
       try {
-        return { id: `unresolved:${normalizeRepoPath(posix.join(dirname(importer), spec))}`, kind: "unresolved" };
+        if (PLAUSIBLE_SPECIFIER.test(spec)) {
+          return { id: `unresolved:${normalizeRepoPath(posix.join(dirname(importer), spec))}`, kind: "unresolved" };
+        }
       } catch {
         // escapes the root: keep the specifier as written
       }
     }
-    return { id: `unresolved:${spec}`, kind: "unresolved" };
+    return { id: `unresolved:${safeSpecifier(spec)}`, kind: "unresolved" };
   }
   const resolvedPath = entry.resolved.replaceAll("\\", "/");
   const isNpm = entry.dependencyTypes?.some((t) => NPM_TYPES.has(t)) ?? false;
@@ -233,7 +250,7 @@ export function normalizeCruiseResult(output: unknown): ModuleGraph {
     for (const dep of mod.dependencies) {
       const target = nodeFor(dep, self.id);
       if (!nodes.has(target.id) || target.kind === "module") nodes.set(target.id, target.kind);
-      const edge: GraphEdge = { from: self.id, to: target.id, specifier: dep.module, ...edgeKindOf(dep) };
+      const edge: GraphEdge = { from: self.id, to: target.id, specifier: safeSpecifier(dep.module), ...edgeKindOf(dep) };
       edges.set(`${edge.from}\0${edge.to}\0${edge.kind}\0${edge.specifier}`, edge);
     }
   }
