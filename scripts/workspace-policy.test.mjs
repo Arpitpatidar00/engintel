@@ -142,7 +142,7 @@ describe("workspace shape", () => {
 });
 
 describe("license headers", () => {
-  test("every source file starts with the SPDX Apache-2.0 header", () => {
+  test("every source file starts with the SPDX Apache-2.0 header (after a shebang, if any)", () => {
     const roots = [
       ...EXPECTED_PACKAGES.flatMap((p) => [
         join(ROOT, "packages", p, "src"),
@@ -154,11 +154,12 @@ describe("license headers", () => {
     for (const r of roots) {
       for (const file of walkFiles(r)) {
         if (!/\.(ts|mts|cts|js|mjs|cjs)$/.test(file)) continue;
-        const first = readFileSync(file, "utf8").split("\n", 1)[0];
-        if (first !== SPDX) missing.push(relative(ROOT, file));
+        const [first, second] = readFileSync(file, "utf8").split("\n", 2);
+        const header = first?.startsWith("#!") ? second : first;
+        if (header !== SPDX) missing.push(relative(ROOT, file));
       }
     }
-    assert.deepEqual(missing, [], `files missing "${SPDX}" on line 1`);
+    assert.deepEqual(missing, [], `files missing "${SPDX}" on line 1 (line 2 after a shebang)`);
   });
 });
 

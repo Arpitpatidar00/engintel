@@ -2,9 +2,9 @@
 // Copyright 2026 The EngIntel Authors
 
 import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, sep } from "node:path";
 import { describe, expect, test } from "vitest";
-import { E_NOT_IMPLEMENTED, GOLDEN_IDS, loadGoldens, materializeScenario, runCli } from "../src/index.js";
+import { GOLDEN_IDS, cliBinPath, loadGoldens, materializeScenario } from "../src/index.js";
 
 const goldens = loadGoldens();
 
@@ -59,12 +59,8 @@ describe("materializeScenario", () => {
   });
 });
 
-describe("runCli (Phase 0 stub)", () => {
-  test("returns a coded not-implemented tool error", async () => {
-    const result = await runCli(["validate", "--changed"], { cwd: goldens[0]!.repoDir });
-    expect(result.exitCode).toBe(2);
-    expect(result.errorCode).toBe(E_NOT_IMPLEMENTED);
-    expect(result.stdout).toBe("");
-    expect(result.stderr).toContain("validate --changed");
+describe("runCli", () => {
+  test("runs the built CLI from packages/cli/dist (exercised end to end by @engintel/cli)", () => {
+    expect(cliBinPath().split(sep).slice(-4)).toEqual(["packages", "cli", "dist", "bin.js"]);
   });
 });

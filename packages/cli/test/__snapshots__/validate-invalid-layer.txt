@@ -1,0 +1,25 @@
+EngIntel validate: FAIL (2 errors, 0 warnings, 0 advisories)
+Contract: .engintel/architecture.json (policy 1.0.0, active)
+Scope: full repository; 6 files and 7 dependencies checked
+
+error  no-controller-to-repository
+  src/controllers/audit.controller.ts:1:1
+  Forbidden dependency from layer 'controllers' to layer 'repositories': src/controllers/audit.controller.ts imports types from src/repositories/order.repository.ts.
+  Why: Layer 'controllers' is not allowed to depend on layer 'repositories' under rule 'no-controller-to-repository'. Do not skip the service layer. Inject a service and call it.
+  Dependency:
+    src/controllers/audit.controller.ts
+    -> src/repositories/order.repository.ts  (type-only)
+  Legal route: controllers -> services -> repositories
+  Suggested: Depend on layer 'services' instead, following the legal route controllers -> services -> repositories. For example, use OrderService (class) from src/services/order.service.ts.
+  Identity: f8daa3052e389d132ce20a6372c81f1dfbe5b0de461f407218bcfc8a57fef82d
+
+error  no-controller-to-repository
+  src/controllers/report.controller.ts:1:1
+  Forbidden dependency from layer 'controllers' to layer 'repositories': src/controllers/report.controller.ts imports src/repositories/order.repository.ts.
+  Why: Layer 'controllers' is not allowed to depend on layer 'repositories' under rule 'no-controller-to-repository'. Do not skip the service layer. Inject a service and call it.
+  Dependency:
+    src/controllers/report.controller.ts
+    -> src/repositories/order.repository.ts  (import)
+  Legal route: controllers -> services -> repositories
+  Suggested: Depend on layer 'services' instead, following the legal route controllers -> services -> repositories. For example, use OrderService (class) from src/services/order.service.ts.
+  Identity: 775b8f80a39ce67caa667dc9936ac9f154f9fd45ce943d24e7a86a2e56842fb3

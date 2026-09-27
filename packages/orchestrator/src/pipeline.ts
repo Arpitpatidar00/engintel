@@ -187,7 +187,8 @@ export async function analyzeRepository(options: AnalyzeOptions): Promise<Analys
     const index = loaded ? new LayerIndex(loaded.contract) : null;
     const analyzable = files.filter((f) => f.unanalyzable === null).map((f) => f.path);
     const count = (kind: string) => graph.nodes.filter((n) => n.kind === kind).length;
-    const status = (s: ScannedFile["status"]) => scan.files.filter((f) => f.status === s).length;
+    const sources = scan.files.filter((f) => f.kind === "source");
+    const status = (s: ScannedFile["status"]) => sources.filter((f) => f.status === s).length;
     return {
       schemaVersion: REPORT_SCHEMA_VERSION,
       command: "analyze",
@@ -199,11 +200,11 @@ export async function analyzeRepository(options: AnalyzeOptions): Promise<Analys
         treeHash: scan.treeHash,
         files: {
           total: scan.files.length,
-          source: scan.files.filter((f) => f.kind === "source").length,
+          source: sources.length,
           ok: status("ok"),
           unreadable: status("unreadable"),
           ignored: status("ignored"),
-          unsupported: status("unsupported"),
+          other: scan.files.length - sources.length,
         },
       },
       graph: {

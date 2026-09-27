@@ -31,4 +31,4 @@ export {
 
 export { loadGoldens, materializeScenario, type GoldenFixture, type MaterializedScenario } from "./loader.js";
 
-export { E_NOT_IMPLEMENTED, runCli, type CliRunOptions, type CliRunResult } from "./cli-runner.js";
+export { E_CLI_NOT_BUILT, cliBinPath, runCli, type CliRunOptions, type CliRunResult } from "./cli-runner.js";

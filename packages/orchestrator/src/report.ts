@@ -48,7 +48,8 @@ export interface AnalysisReport {
   readonly contract: ContractSummary | null;
   readonly repository: {
     readonly treeHash: string;
-    readonly files: { readonly total: number; readonly source: number; readonly ok: number; readonly unreadable: number; readonly ignored: number; readonly unsupported: number };
+    /** `ok`, `unreadable`, and `ignored` count source files; `other` counts everything else. */
+    readonly files: { readonly total: number; readonly source: number; readonly ok: number; readonly unreadable: number; readonly ignored: number; readonly other: number };
   };
   readonly graph: {
     readonly file: string | null;

@@ -1,10 +1,13 @@
 {
   "name": "@engintel/cli",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "description": "The engintel command-line interface. Same binary for developers and CI.",
   "license": "Apache-2.0",
   "type": "module",
+  "bin": {
+    "engintel": "./dist/bin.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -22,7 +25,13 @@
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run --passWithNoTests"
   },
+  "dependencies": {
+    "@engintel/config": "workspace:*",
+    "@engintel/orchestrator": "workspace:*",
+    "commander": "catalog:"
+  },
   "devDependencies": {
+    "@engintel/testkit": "workspace:*",
     "@types/node": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",

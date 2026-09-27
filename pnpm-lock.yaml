@@ -18,6 +18,9 @@ catalogs:
     ajv:
       specifier: 8.20.0
       version: 8.20.0
+    commander:
+      specifier: 15.0.0
+      version: 15.0.0
     dependency-cruiser:
       specifier: 18.4.0
       version: 18.4.0
@@ -93,7 +96,20 @@ importers:
         version: 5.0.2(@types/node@22.20.4)(vite@8.3.1(@types/node@22.20.4))
 
   packages/cli:
+    dependencies:
+      '@engintel/config':
+        specifier: workspace:*
+        version: link:../config
+      '@engintel/orchestrator':
+        specifier: workspace:*
+        version: link:../orchestrator
+      commander:
+        specifier: 'catalog:'
+        version: 15.0.0
     devDependencies:
+      '@engintel/testkit':
+        specifier: workspace:*
+        version: link:../testkit
       '@types/node':
         specifier: 'catalog:'
         version: 22.20.4
