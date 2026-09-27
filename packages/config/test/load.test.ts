@@ -64,6 +64,13 @@ describe("loadContract (ENG-006)", () => {
     expect(loadError(repo(files)).code).toBe(code);
   });
 
+  test("JSON errors give a position, never a quote of the file", () => {
+    const error = loadError(repo({ [CONTRACT_PATH]: '{\n  "schemaVersion": 1,\n  SECRET-ISH TEXT\n}' }));
+    expect(error.message).toBe(".engintel/architecture.json is not valid JSON at line 3, column 3");
+    expect(loadError(repo({ [CONTRACT_PATH]: "hello world" })).message).not.toContain("hello");
+    expect(loadError(repo({ [CONTRACT_PATH]: "  " })).message).toBe(".engintel/architecture.json is not valid JSON: the file is empty");
+  });
+
   test("a directory in place of the contract is refused", () => {
     const root = repo({ ".engintel/architecture.json/x": "" });
     expect(loadError(root).code).toBe("E_CONTRACT_INVALID");

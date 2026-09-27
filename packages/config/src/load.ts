@@ -95,10 +95,20 @@ export function readRepoJson(root: string, repoPath: string, invalidJson: Config
   } catch (error) {
     throw new ConfigError("E_CONFIG_UNREADABLE", repoPath, `${repoPath} cannot be read as UTF-8: ${(error as Error).message}`);
   }
+  const json = text.replace(/^\uFEFF/, "");
   try {
-    return JSON.parse(text.replace(/^\uFEFF/, "")) as unknown;
+    return JSON.parse(json) as unknown;
   } catch (error) {
-    throw new ConfigError(invalidJson, repoPath, `${repoPath} is not valid JSON: ${(error as Error).message}`);
+    // V8's message can quote file content; report the position only.
+    const position = /position (\d+)/.exec((error as Error).message)?.[1];
+    let where = "";
+    if (position !== undefined) {
+      const before = json.slice(0, Number(position)).split("\n");
+      where = ` at line ${before.length}, column ${(before[before.length - 1]?.length ?? 0) + 1}`;
+    } else if (json.trim() === "") {
+      where = ": the file is empty";
+    }
+    throw new ConfigError(invalidJson, repoPath, `${repoPath} is not valid JSON${where}`);
   }
 }
 
