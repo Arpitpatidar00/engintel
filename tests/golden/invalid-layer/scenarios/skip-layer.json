@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "mode": "changed",
+  "contractChanged": false,
+  "base": null,
+  "overlay": null,
+  "now": "2026-09-01",
+  "description": "A controller imports a repository directly (value import) and another leaks its type (type-only import).",
+  "changedFiles": [
+    "src/controllers/report.controller.ts",
+    "src/controllers/audit.controller.ts"
+  ]
+}

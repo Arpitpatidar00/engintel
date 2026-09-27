@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "mode": "changed",
+  "contractChanged": true,
+  "base": "base",
+  "overlay": null,
+  "now": "2026-09-01",
+  "description": "The PR deletes the forbidden rule that would have caught the controller-to-repository import it also adds.",
+  "changedFiles": [
+    ".engintel/architecture.json",
+    "src/controllers/order-lookup.controller.ts"
+  ]
+}

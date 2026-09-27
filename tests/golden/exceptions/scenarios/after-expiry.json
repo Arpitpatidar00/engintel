@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "mode": "full",
+  "contractChanged": false,
+  "base": null,
+  "overlay": null,
+  "now": "2026-09-01",
+  "description": "On 2026-09-01 the health exception is active and the metrics exception has expired.",
+  "changedFiles": []
+}

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "mode": "changed",
+  "contractChanged": false,
+  "base": null,
+  "overlay": null,
+  "now": "2026-09-01",
+  "description": "A PR that edits a service within its allowed edges.",
+  "changedFiles": [
+    "src/services/order.service.ts"
+  ]
+}

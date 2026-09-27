@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "mode": "changed",
+  "contractChanged": false,
+  "base": null,
+  "overlay": null,
+  "now": "2026-09-01",
+  "description": "Three legacy violations exist; the PR edits a file none of them touch.",
+  "changedFiles": [
+    "src/domain/order.ts"
+  ]
+}

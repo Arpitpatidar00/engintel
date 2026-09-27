@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "mode": "changed",
+  "contractChanged": false,
+  "base": null,
+  "overlay": null,
+  "now": "2026-09-01",
+  "description": "The PR changes a file that is on the reviewed unsupportedPaths allowlist.",
+  "changedFiles": [
+    "src/legacy/vendor-blob.ts"
+  ]
+}

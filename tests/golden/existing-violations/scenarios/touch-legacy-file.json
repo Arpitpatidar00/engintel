@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "mode": "changed",
+  "contractChanged": false,
+  "base": null,
+  "overlay": null,
+  "now": "2026-09-01",
+  "description": "The PR edits the source file of a legacy (baselined) violation without adding edges.",
+  "changedFiles": [
+    "src/controllers/legacy-billing.controller.ts"
+  ]
+}

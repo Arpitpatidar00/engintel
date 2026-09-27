@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "mode": "changed",
+  "contractChanged": false,
+  "base": null,
+  "overlay": "overlays/new-violation",
+  "now": "2026-09-01",
+  "description": "The PR adds one new controller that imports a repository.",
+  "changedFiles": [
+    "src/controllers/refund.controller.ts"
+  ]
+}

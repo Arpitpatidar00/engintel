@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "mode": "changed",
+  "contractChanged": false,
+  "base": null,
+  "overlay": null,
+  "now": "2026-09-01",
+  "description": "The PR changes a binary file named .ts and a truncated TypeScript file.",
+  "changedFiles": [
+    "src/services/corrupt.service.ts",
+    "src/services/truncated.service.ts"
+  ]
+}

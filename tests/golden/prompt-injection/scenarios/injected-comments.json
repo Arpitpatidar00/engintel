@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "mode": "changed",
+  "contractChanged": false,
+  "base": null,
+  "overlay": null,
+  "now": "2026-09-01",
+  "description": "An illegal import wrapped in comments, JSDoc, a string, and a README that instruct the tool to pass.",
+  "changedFiles": [
+    "src/controllers/admin.controller.ts",
+    "README.md"
+  ]
+}

@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "policyVersion": "1.0.0",
+  "status": "active",
+  "description": "Golden fixture contract: controllers -> services -> repositories -> domain.",
+  "layers": [
+    {
+      "id": "controllers",
+      "description": "HTTP adapters",
+      "globs": [
+        "src/controllers/**/*.ts"
+      ]
+    },
+    {
+      "id": "services",
+      "description": "Application services",
+      "globs": [
+        "src/services/**/*.ts"
+      ]
+    },
+    {
+      "id": "repositories",
+      "description": "Persistence",
+      "globs": [
+        "src/repositories/**/*.ts"
+      ]
+    },
+    {
+      "id": "domain",
+      "description": "Pure types and entities",
+      "globs": [
+        "src/domain/**/*.ts"
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "no-controller-to-repository",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": {
+        "layer": "controllers"
+      },
+      "to": {
+        "layer": "repositories"
+      },
+      "comment": "Do not skip the service layer. Inject a service and call it."
+    },
+    {
+      "id": "no-service-to-controller",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": {
+        "layer": "services"
+      },
+      "to": {
+        "layer": "controllers"
+      },
+      "comment": "Services must not depend on HTTP adapters."
+    },
+    {
+      "id": "no-repository-upward",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": {
+        "layer": "repositories"
+      },
+      "to": {
+        "layers": [
+          "services",
+          "controllers"
+        ]
+      },
+      "comment": "Repositories map domain entities to storage and depend on nothing above them."
+    },
+    {
+      "id": "no-upward-from-domain",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": {
+        "layer": "domain"
+      },
+      "to": {
+        "layers": [
+          "controllers",
+          "services",
+          "repositories"
+        ]
+      },
+      "comment": "Domain stays pure."
+    },
+    {
+      "id": "acyclic-domain",
+      "kind": "acyclic",
+      "severity": "error",
+      "within": {
+        "layer": "domain"
+      },
+      "comment": "Domain module cycles hide ownership. Break the cycle or extract a types module."
+    },
+    {
+      "id": "no-unresolved-in-src",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": {
+        "glob": "src/**"
+      },
+      "to": {
+        "unresolved": true
+      },
+      "comment": "Every import in src must resolve to a file or a declared package."
+    }
+  ],
+  "opaqueImports": "error",
+  "exceptions": [
+    {
+      "id": "ex-health-liveness",
+      "ruleId": "no-controller-to-repository",
+      "source": "src/controllers/health.controller.ts",
+      "target": "src/repositories/health.repository.ts",
+      "reason": "Liveness must read the database directly so a broken service layer cannot mask an outage.",
+      "owner": "@platform-api",
+      "addedAt": "2026-08-01",
+      "expiresAt": "2027-01-15"
+    },
+    {
+      "id": "ex-metrics-shortcut",
+      "ruleId": "no-controller-to-repository",
+      "source": "src/controllers/metrics.controller.ts",
+      "target": "src/repositories/metrics.repository.ts",
+      "reason": "Temporary shortcut until MetricsService lands; tracked in OPS-212.",
+      "owner": "@platform-api",
+      "addedAt": "2026-01-10",
+      "expiresAt": "2026-03-01"
+    }
+  ]
+}

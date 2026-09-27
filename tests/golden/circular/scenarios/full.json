@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "mode": "full",
+  "contractChanged": false,
+  "base": null,
+  "overlay": null,
+  "now": "2026-09-01",
+  "description": "Full validation finds the domain cycle.",
+  "changedFiles": []
+}

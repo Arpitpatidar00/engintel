@@ -13,7 +13,8 @@
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test && pnpm run test:workspace",
-    "test:workspace": "node --test scripts/workspace-policy.test.mjs"
+    "test:workspace": "node --test scripts/workspace-policy.test.mjs",
+    "golden:update": "turbo run build --filter=@engintel/testkit --output-logs=errors-only && node packages/testkit/dist/bin/update-golden-manifest.js"
   },
   "devDependencies": {
     "@types/node": "catalog:",

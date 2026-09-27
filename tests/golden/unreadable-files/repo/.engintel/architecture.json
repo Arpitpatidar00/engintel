@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "policyVersion": "1.0.0",
+  "status": "active",
+  "description": "Golden fixture contract: controllers -> services -> repositories -> domain.",
+  "layers": [
+    {
+      "id": "controllers",
+      "description": "HTTP adapters",
+      "globs": [
+        "src/controllers/**/*.ts"
+      ]
+    },
+    {
+      "id": "services",
+      "description": "Application services",
+      "globs": [
+        "src/services/**/*.ts"
+      ]
+    },
+    {
+      "id": "repositories",
+      "description": "Persistence",
+      "globs": [
+        "src/repositories/**/*.ts"
+      ]
+    },
+    {
+      "id": "domain",
+      "description": "Pure types and entities",
+      "globs": [
+        "src/domain/**/*.ts"
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "no-controller-to-repository",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": {
+        "layer": "controllers"
+      },
+      "to": {
+        "layer": "repositories"
+      },
+      "comment": "Do not skip the service layer. Inject a service and call it."
+    },
+    {
+      "id": "no-service-to-controller",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": {
+        "layer": "services"
+      },
+      "to": {
+        "layer": "controllers"
+      },
+      "comment": "Services must not depend on HTTP adapters."
+    },
+    {
+      "id": "no-repository-upward",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": {
+        "layer": "repositories"
+      },
+      "to": {
+        "layers": [
+          "services",
+          "controllers"
+        ]
+      },
+      "comment": "Repositories map domain entities to storage and depend on nothing above them."
+    },
+    {
+      "id": "no-upward-from-domain",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": {
+        "layer": "domain"
+      },
+      "to": {
+        "layers": [
+          "controllers",
+          "services",
+          "repositories"
+        ]
+      },
+      "comment": "Domain stays pure."
+    },
+    {
+      "id": "acyclic-domain",
+      "kind": "acyclic",
+      "severity": "error",
+      "within": {
+        "layer": "domain"
+      },
+      "comment": "Domain module cycles hide ownership. Break the cycle or extract a types module."
+    },
+    {
+      "id": "no-unresolved-in-src",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": {
+        "glob": "src/**"
+      },
+      "to": {
+        "unresolved": true
+      },
+      "comment": "Every import in src must resolve to a file or a declared package."
+    }
+  ],
+  "opaqueImports": "error",
+  "unsupportedPaths": [
+    {
+      "glob": "src/legacy/vendor-blob.ts",
+      "reason": "Vendored binary blob with a .ts extension; replacement tracked in PLAT-88.",
+      "owner": "@platform-api"
+    }
+  ]
+}

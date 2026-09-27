@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "mode": "changed",
+  "contractChanged": false,
+  "base": null,
+  "overlay": null,
+  "now": "2026-09-01",
+  "description": "A PR that edits one file of the cycle brings the whole cycle into scope.",
+  "changedFiles": [
+    "src/domain/discount.ts"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "fixtureVersion": "0.1.0",
+  "treeHash": {
+    "algorithm": "sha256",
+    "definition": "sha256 of the lines \"<posix path>\\0<sha256 of raw bytes>\", sorted by path and joined by \"\\n\", for every regular file under the fixture directory except expected.json at its root"
+  },
+  "fixtures": {
+    "valid-architecture": {
+      "treeHash": "881f0ed8cf4e07682d06b7389914868d34faf5a0da94dd333a7674b2230a9795"
+    },
+    "circular": {
+      "treeHash": "2644f32edc2e8a7914b50c0bd154b424dedf8ca7f23ba4397536c7fcda5b7cad"
+    },
+    "invalid-layer": {
+      "treeHash": "7479e307d8c0ee82f62950815abb452b21595cabedd967fcb26a759a52bf01d1"
+    },
+    "unresolved": {
+      "treeHash": "2d7d75c14fbd162d70c3aede3059c453b225826df297c8794323494e277be55d"
+    },
+    "existing-violations": {
+      "treeHash": "8aa42cd0f586c6f3740ebb107d6f51511c083e716f6bfa474bf99a455e67eea5"
+    },
+    "exceptions": {
+      "treeHash": "9fbdf18632deabaf39d615c4a4b398ab9b9009e8df89c4009fea28a9707db36e"
+    },
+    "policy-change": {
+      "treeHash": "f62022fe4cbf8cf83aa8e7572809de6d71b17d194e310dad322b27ad18e3eda8"
+    },
+    "prompt-injection": {
+      "treeHash": "ddbee7598c6471da96b38ead6f081b14f21807b94a4e2a4e2e00c73025075c57"
+    },
+    "unreadable-files": {
+      "treeHash": "5fdd0141a10af999312881de8518d146fad864eaf9bdb5415ee0b9ac77acd50a"
+    }
+  }
+}

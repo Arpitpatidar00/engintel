@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "mode": "full",
+  "contractChanged": false,
+  "base": null,
+  "overlay": null,
+  "now": "2026-02-01",
+  "description": "On 2026-02-01 both exceptions are active.",
+  "changedFiles": []
+}

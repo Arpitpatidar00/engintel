@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "mode": "changed",
+  "contractChanged": false,
+  "base": null,
+  "overlay": null,
+  "now": "2026-09-01",
+  "description": "The PR edits a clean file; the unanalyzable files are not in the diff.",
+  "changedFiles": [
+    "src/domain/order.ts"
+  ]
+}
