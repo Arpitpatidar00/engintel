@@ -1,0 +1,23 @@
+{
+  "name": "engintel-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "description": "EngIntel: engineering intelligence and architecture gate for JS/TS repositories.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "packageManager": "pnpm@10.7.1",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test && pnpm run test:workspace",
+    "test:workspace": "node --test scripts/workspace-policy.test.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:"
+  }
+}

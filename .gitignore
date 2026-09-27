@@ -1,0 +1,16 @@
+# Dependencies and build output
+node_modules/
+dist/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# EngIntel derived state (never committed; rebuildable)
+.engintel/cache/
+.engintel/index/
+
+# Local environment
+.env
+.env.*
+.DS_Store
+Thumbs.db

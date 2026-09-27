@@ -1,0 +1,23 @@
+packages:
+  - packages/*
+
+# Exact pins for every third-party tool. Packages reference these as "catalog:".
+# Upgrading any of these is a reviewed change (see docs/phase-0-decisions.md).
+catalog:
+  # TypeScript 6.0 is the last release with the JS compiler API
+  # (ts.createProgram + TypeChecker) that D-002 depends on. 7.x is the native
+  # port: its main entry exports only a version string. Do not bump to 7.x.
+  typescript: 6.0.3
+  "@types/node": 22.20.4
+  turbo: 2.11.4
+  vite: 8.3.1
+  vitest: 5.0.2
+  zod: 4.6.5
+  # Reserved for ENG-005 (@engintel/graph is its only consumer). Pinned now so
+  # Phase 1 does not pick a version ad hoc; not installed until referenced.
+  dependency-cruiser: 18.4.0
+
+# Fail the install if any dependency wants to run a build script that has not
+# been explicitly reviewed. Nothing is allowed to build.
+strictDepBuilds: true
+onlyBuiltDependencies: []

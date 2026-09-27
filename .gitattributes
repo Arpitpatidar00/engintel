@@ -1,0 +1,7 @@
+* text=auto eol=lf
+
+# Golden fixtures are hashed byte-for-byte (treeHash). Git must never rewrite
+# their line endings or content, or the manifest hashes drift per platform.
+tests/golden/** -text
+
+*.pdf binary
