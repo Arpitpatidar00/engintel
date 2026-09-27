@@ -13,6 +13,10 @@ catalog:
   vite: 8.3.1
   vitest: 5.0.2
   zod: 4.6.5
+  ignore: 7.0.10
+  picomatch: 4.0.7
+  "@types/picomatch": 4.0.3
+  commander: 15.0.0
   ajv: 8.20.0
   eslint: 10.11.0
   "@eslint/js": 10.0.1
@@ -25,3 +29,12 @@ catalog:
 # been explicitly reviewed. Nothing is allowed to build.
 strictDepBuilds: true
 onlyBuiltDependencies: []
+
+# dependency-cruiser loads TypeScript with an optional import from its own
+# location and silently falls back to a JS-only parser (no `import type`) when
+# it cannot. Declare the peer so pnpm links the pinned compiler explicitly
+# instead of relying on hidden hoisting. Its supported range is <7.0.0.
+packageExtensions:
+  dependency-cruiser:
+    peerDependencies:
+      typescript: ">=5.0.0 <7.0.0"

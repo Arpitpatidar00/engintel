@@ -22,10 +22,17 @@
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run --passWithNoTests"
   },
+  "dependencies": {
+    "@engintel/config": "workspace:*",
+    "ignore": "catalog:",
+    "picomatch": "catalog:"
+  },
   "devDependencies": {
     "@types/node": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "@types/picomatch": "catalog:",
+    "@engintel/testkit": "workspace:*"
   }
 }
