@@ -3,12 +3,13 @@
 
 import { lstatSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { BASELINE_PATH, CONTRACT_PATH, RepoPathError, loadConfig, loadContract, normalizeRepoPath, type LoadedConfig, type LoadedContract } from "@engintel/config";
+import { BASELINE_PATH, CONFIG_PATH, CONTRACT_PATH, RepoPathError, loadConfig, loadContract, normalizeRepoPath, type LoadedConfig, type LoadedContract } from "@engintel/config";
 import { buildModuleGraph, findCycles, serializeGraph, type CruiseFn, type ModuleGraph } from "@engintel/graph";
-import { IDENTITY_VERSION, LayerIndex, evaluate, type FileFacts, type Scope, type SourceFileState } from "@engintel/policy";
+import { IDENTITY_VERSION, LayerIndex, evaluate, withDiagnostics, type FileFacts, type Scope, type SourceFileState } from "@engintel/policy";
 import { changedFilesSince, mergeBase, resolveCommit, scanRepository, showFileAt, type ScanResult, type ScannedFile } from "@engintel/scanner";
 import { extractSymbols, parseSourceFiles, type ParsedFile } from "@engintel/symbols";
 import { applyBaselineContext, loadBaselineContext } from "./baseline.js";
+import { IGNORE_PATH, detectPolicyChanges, type PolicyBase } from "./policy-change.js";
 import { ToolError, toToolError } from "./errors.js";
 import { REPORT_SCHEMA_VERSION, type AnalysisReport, type ContractSummary, type ValidationReport } from "./report.js";
 
@@ -53,7 +54,7 @@ export interface ValidateOptions extends PipelineOptions {
    * absent). Filled from git for `changedSince`; tests and scenarios pass it
    * directly. Its presence switches baseline comparison to merge-base rules.
    */
-  readonly base?: { readonly contract: string | null; readonly baseline: string | null };
+  readonly base?: PolicyBase;
   /** Owners approved this change (the Action maps pull request labels to these). */
   readonly approvals?: { readonly policyChange?: boolean; readonly baselineChange?: boolean };
 }
@@ -194,18 +195,30 @@ export async function validateRepository(options: ValidateOptions): Promise<Vali
       );
     }
     if (options.base && fromGit) throw new ToolError("E_USAGE", "base is read from git when changedSince is set");
-    const base =
+    const at = (path: string) => (fromGit ? showFileAt(root, fromGit.git.mergeBase, path) : null);
+    const base: PolicyBase | undefined =
       options.base ??
-      (fromGit
-        ? { contract: showFileAt(root, fromGit.git.mergeBase, CONTRACT_PATH), baseline: showFileAt(root, fromGit.git.mergeBase, BASELINE_PATH) }
-        : undefined);
+      (fromGit ? { contract: at(CONTRACT_PATH), baseline: at(BASELINE_PATH), config: at(CONFIG_PATH), ignore: at(IGNORE_PATH) } : undefined);
     const baselineContext = loadBaselineContext(root, base, fromGit ? showFileAt(root, fromGit.git.baseCommit, BASELINE_PATH) : undefined);
     const { config, scan, graph, files, facts } = await analyzeTree(options);
     const evaluated = evaluate({ contract: loaded.contract, graph, files, facts, scope, now: options.now });
-    const { result, section } = applyBaselineContext(evaluated, baselineContext, {
+    const baselined = applyBaselineContext(evaluated, baselineContext, {
       scope,
       baselineChangeApproved: options.approvals?.baselineChange ?? false,
     });
+    const section = baselined.section;
+    const policyChange = base
+      ? detectPolicyChanges({
+          root,
+          base,
+          head: { contract: loaded.contract, config: config.config },
+          baselines: baselineContext,
+          fullFindings: () =>
+            scope.mode === "full" ? evaluated.findings : evaluate({ contract: loaded.contract, graph, files, facts, scope: { mode: "full" }, now: options.now }).findings,
+          approvals: { policyChange: options.approvals?.policyChange ?? false, baselineChange: options.approvals?.baselineChange ?? false },
+        })
+      : null;
+    const result = policyChange ? withDiagnostics(baselined.result, policyChange.violations) : baselined.result;
     const baselineNotices =
       section?.comparedWith === "working-copy"
         ? [`Compared with the working copy of ${section.file}. With --changed, CI compares with the baseline at the merge base.`]
@@ -227,6 +240,7 @@ export async function validateRepository(options: ValidateOptions): Promise<Vali
       repository: { treeHash: scan.treeHash },
       counts: result.counts,
       baseline: section,
+      policyChange: policyChange ? { items: policyChange.items } : null,
       diagnostics: result.diagnostics,
       exceptionsApplied: result.exceptionsApplied,
       unanalyzable: result.unanalyzable,

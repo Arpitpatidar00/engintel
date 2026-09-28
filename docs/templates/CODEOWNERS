@@ -1,0 +1,13 @@
+# EngIntel policy files: .engintel/architecture.json (the contract),
+# baseline.json (existing debt), config.json, and ignore.
+#
+# Copy these lines into .github/CODEOWNERS and replace the team. Then, in a
+# branch ruleset for your default branch, enable "Require review from Code
+# Owners" and require the EngIntel status check. Without both, anyone (or any
+# agent) who can open a pull request can weaken the policy that judges it.
+#
+# /.engintel/cache/ is derived and gitignored; it needs no owner.
+
+/.engintel/                 @your-org/architecture-owners
+/.github/CODEOWNERS         @your-org/architecture-owners
+/.github/workflows/         @your-org/architecture-owners

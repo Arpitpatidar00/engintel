@@ -27,9 +27,8 @@ const OUTCOMES: Record<string, Record<string, "pass" | "fail">> = {
   "prompt-injection": { "injected-comments": "fail" },
   "unreadable-files": { "changed-unanalyzable": "fail", "unchanged-unanalyzable": "pass", "allowlisted-change": "pass" },
   "existing-violations": { "unrelated-change": "pass", "touch-legacy-file": "pass", "new-violation": "fail" },
+  "policy-change": { "remove-forbidden-rule": "fail" },
 };
-/** Policy-change detection arrives with ENG-012. */
-const LATER = ["policy-change"];
 
 const UPDATE = process.env["ENGINTEL_UPDATE_EXPECTED"] === "1";
 const goldens = loadGoldens();
@@ -76,7 +75,7 @@ async function reportFor(id: string, scenario: string): Promise<ValidationReport
 
 describe("golden expected.json", () => {
   test("every fixture is either targeted by Phase 1 or explicitly deferred", () => {
-    expect([...Object.keys(OUTCOMES), ...LATER].sort()).toEqual(goldens.map((g) => g.id).sort());
+    expect(Object.keys(OUTCOMES).sort()).toEqual(goldens.map((g) => g.id).sort());
     for (const id of Object.keys(OUTCOMES)) expect(Object.keys(OUTCOMES[id] ?? {}).sort()).toEqual(Object.keys(fixture(id).scenarios).sort());
   });
 
@@ -98,9 +97,6 @@ describe("golden expected.json", () => {
     expect(actual).toEqual(g.expected);
   });
 
-  test.each(LATER)("%s stays {} until Phase 2", (id) => {
-    expect(fixture(id).expected).toBeNull();
-  });
 });
 
 describe("golden behaviour (GOLDEN.md)", () => {
@@ -179,6 +175,17 @@ describe("golden behaviour (GOLDEN.md)", () => {
       ["no-controller-to-repository", "src/controllers/refund.controller.ts", "src/repositories/order.repository.ts"],
     ]);
     expect(fresh.counts.suppressedByBaseline).toBe(0);
+  });
+
+  test("policy-change: deleting the rule that would catch the new import is itself the failure", async () => {
+    const r = await reportFor("policy-change", "remove-forbidden-rule");
+    expect(r.diagnostics.map((d) => [d.ruleId, d.severity, d.file])).toEqual([
+      ["engintel.policy-weakening", "error", ".engintel/architecture.json"],
+    ]);
+    expect(r.diagnostics[0]?.message).toBe(
+      "Policy weakening in .engintel/architecture.json: rule 'no-controller-to-repository' (forbidden) removed.",
+    );
+    expect(r.policyChange?.items.map((i) => i.class)).toEqual(["weakening", "neutral"]);
   });
 
   test("determinism: a second run gives byte-identical reports and identities", async () => {

@@ -1,1 +1,79 @@
-{}
+{
+  "remove-forbidden-rule": {
+    "schemaVersion": 1,
+    "command": "validate",
+    "identityVersion": 1,
+    "outcome": "fail",
+    "exitCode": 1,
+    "now": "2026-09-01",
+    "scope": {
+      "mode": "changed",
+      "changedFiles": [
+        ".engintel/architecture.json",
+        "src/controllers/order-lookup.controller.ts"
+      ],
+      "contractChanged": true
+    },
+    "git": null,
+    "contract": {
+      "file": ".engintel/architecture.json",
+      "status": "active",
+      "policyVersion": "1.0.1",
+      "contractHash": "54586d461d73c4f8304aa997ce6577d4a142b76e5592a4521fcc469c59364b60"
+    },
+    "repository": {
+      "treeHash": "dd29e967ee4ab4a515414dfcd756672556d97e609bbc615437a00276f68420a7"
+    },
+    "counts": {
+      "errors": 1,
+      "warnings": 0,
+      "advisories": 0,
+      "suppressedByException": 0,
+      "suppressedByBaseline": 0,
+      "unanalyzable": 0
+    },
+    "baseline": null,
+    "policyChange": {
+      "items": [
+        {
+          "file": ".engintel/architecture.json",
+          "class": "weakening",
+          "subject": "rule:no-controller-to-repository",
+          "summary": "rule 'no-controller-to-repository' (forbidden) removed"
+        },
+        {
+          "file": ".engintel/architecture.json",
+          "class": "neutral",
+          "subject": "metadata",
+          "summary": "policyVersion or description edited"
+        }
+      ]
+    },
+    "diagnostics": [
+      {
+        "schemaVersion": 1,
+        "identity": "6008e4cee99f087f0812d0788b4c2464487c70b1f606bae0debc198cdbb9d237",
+        "adapter": "policy",
+        "ruleId": "engintel.policy-weakening",
+        "severity": "error",
+        "blocking": true,
+        "file": ".engintel/architecture.json",
+        "message": "Policy weakening in .engintel/architecture.json: rule 'no-controller-to-repository' (forbidden) removed.",
+        "why": "A change to .engintel/architecture.json that could let a violation pass needs architecture owners' approval: their CODEOWNERS review and the 'policy-change' label on the pull request. EngIntel cannot tell a deliberate policy change from an agent removing the rule that blocks it.",
+        "suggest": {
+          "kind": "none",
+          "explanation": "Revert this part of .engintel/architecture.json, or ask an architecture owner to review the change and add the 'policy-change' label."
+        }
+      }
+    ],
+    "exceptionsApplied": [],
+    "unanalyzable": [],
+    "stats": {
+      "files": 5,
+      "filesInScope": 5,
+      "edges": 6,
+      "edgesEvaluated": 6
+    },
+    "notices": []
+  }
+}

@@ -60,13 +60,22 @@ export async function main(argv: readonly string[], io: CliIO): Promise<number> 
     for (const line of lines) io.stderr.write(`engintel: note: ${line}\n`);
   };
 
-  const validate = async (options: CommonOptions & { readonly now?: string; readonly changed?: boolean; readonly base?: string }) => {
+  const validate = async (
+    options: CommonOptions & {
+      readonly now?: string;
+      readonly changed?: boolean;
+      readonly base?: string;
+      readonly policyChangeApproved?: boolean;
+      readonly baselineChangeApproved?: boolean;
+    },
+  ) => {
     try {
       const changedSince = options.changed || options.base !== undefined ? (options.base ?? defaultBase(io.env)) : undefined;
       const report = await validateRepository({
         root: resolve(io.cwd, options.root),
         now: options.now ?? io.today(),
         ...(changedSince === undefined ? {} : { changedSince }),
+        approvals: { policyChange: options.policyChangeApproved ?? false, baselineChange: options.baselineChangeApproved ?? false },
       });
       io.stdout.write(options.format === "json" ? serializeReport(report) : formatValidation(report, style));
       notices(report.notices);
@@ -91,6 +100,8 @@ export async function main(argv: readonly string[], io: CliIO): Promise<number> 
       .option("--now <date>", "UTC date (YYYY-MM-DD) for exception expiry; default today")
       .option("--changed", "check only what changed since the merge base with --base")
       .option("--base <ref>", "git ref to diff against (implies --changed); default origin/$GITHUB_BASE_REF, else origin/HEAD")
+      .option("--policy-change-approved", "architecture owners approved weakening .engintel policy in this change (set by CI from a label)")
+      .option("--baseline-change-approved", "architecture owners approved growing the baseline in this change (set by CI from a label)")
       .action(validate);
 
   addValidate(program.command("validate"));

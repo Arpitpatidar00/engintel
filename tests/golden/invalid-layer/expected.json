@@ -33,6 +33,7 @@
       "unanalyzable": 0
     },
     "baseline": null,
+    "policyChange": null,
     "diagnostics": [
       {
         "schemaVersion": 1,

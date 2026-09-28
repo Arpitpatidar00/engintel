@@ -44,10 +44,16 @@ export interface Suggestion {
 export interface Violation {
   readonly ruleId: string;
   readonly severity: ContractSeverity;
-  readonly adapter: "architecture" | "analyzer";
+  readonly adapter: "architecture" | "analyzer" | "policy";
   readonly source: string;
   readonly target: string;
   readonly cycleSignature: string | null;
+  /**
+   * Distinguishes findings that share rule, source, and target (policy
+   * changes to the same file). Used as the identity's fourth field when there
+   * is no cycle signature; never shown as a cycle.
+   */
+  readonly identityDetail?: string;
   readonly file: string | null;
   readonly position: Position | null;
   /** Set when the violation is a single graph edge. */
@@ -359,7 +365,7 @@ export function toDiagnostic(v: Violation): Diagnostic {
   const blocking = v.severity === "error";
   return {
     schemaVersion: DIAGNOSTIC_SCHEMA_VERSION,
-    identity: violationIdentity({ ruleId: v.ruleId, source: v.source, target: v.target, cycleSignature: v.cycleSignature }),
+    identity: violationIdentity({ ruleId: v.ruleId, source: v.source, target: v.target, cycleSignature: v.cycleSignature ?? v.identityDetail ?? null }),
     adapter: v.adapter,
     ruleId: v.ruleId,
     severity: SEVERITY[v.severity],

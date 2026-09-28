@@ -38,6 +38,7 @@
       "suppressed": 0,
       "stale": null
     },
+    "policyChange": null,
     "diagnostics": [
       {
         "schemaVersion": 1,
@@ -126,6 +127,7 @@
       "suppressed": 1,
       "stale": null
     },
+    "policyChange": null,
     "diagnostics": [],
     "exceptionsApplied": [],
     "unanalyzable": [],
@@ -178,6 +180,7 @@
       "suppressed": 0,
       "stale": null
     },
+    "policyChange": null,
     "diagnostics": [],
     "exceptionsApplied": [],
     "unanalyzable": [],

@@ -32,6 +32,7 @@
       "unanalyzable": 0
     },
     "baseline": null,
+    "policyChange": null,
     "diagnostics": [],
     "exceptionsApplied": [],
     "unanalyzable": [
@@ -96,6 +97,7 @@
       "unanalyzable": 2
     },
     "baseline": null,
+    "policyChange": null,
     "diagnostics": [
       {
         "schemaVersion": 1,
@@ -190,6 +192,7 @@
       "unanalyzable": 0
     },
     "baseline": null,
+    "policyChange": null,
     "diagnostics": [],
     "exceptionsApplied": [],
     "unanalyzable": [

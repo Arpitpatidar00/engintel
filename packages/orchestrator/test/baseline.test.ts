@@ -119,9 +119,14 @@ describe("validate with a baseline (ENG-009)", () => {
     await writeBaseline({ root, mode: "write", writtenBy: "mallory", now });
     const r = await validateRepository({ root, now, changedSince: "main" });
     expect(r.baseline?.comparedWith).toBe("merge-base");
-    expect(r.diagnostics.map((d) => d.file)).toEqual(["src/controllers/refund.controller.ts"]);
+    // The violation is not suppressed, and growing the baseline is itself a policy weakening (ENG-012).
+    expect(r.diagnostics.map((d) => [d.ruleId, d.file])).toEqual([
+      ["engintel.policy-weakening", ".engintel/baseline.json"],
+      ["no-controller-to-repository", "src/controllers/refund.controller.ts"],
+    ]);
     const approved = await validateRepository({ root, now, changedSince: "main", approvals: { baselineChange: true } });
-    expect(approved.diagnostics).toEqual([]);
+    expect(approved.outcome).toBe("pass");
+    expect(approved.diagnostics.map((d) => [d.ruleId, d.severity])).toEqual([["engintel.policy-weakening", "warning"]]);
     expect(approved.counts.suppressedByBaseline).toBe(1);
   });
 

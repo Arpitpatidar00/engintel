@@ -5,9 +5,8 @@ tickets are done when these fixtures produce the outcomes below, and not before
 (research doc 01, section 7).
 
 **Status:** the inputs are final for `fixtureVersion` 0.2.0 (0.2.0 added
-`existing-violations/repo/.engintel/baseline.json`). Every `expected.json` is
-filled except `policy-change`, which waits for policy-change detection
-(ENG-012).
+`existing-violations/repo/.engintel/baseline.json`). Every fixture's
+`expected.json` is filled.
 
 ## Layout
 
@@ -188,7 +187,10 @@ follows (see `docs/phase-1-decisions.md`).
    errors, where no verdict can be given at all.
 2. **Built-in unanalyzable rule id:** `engintel.unanalyzable` (doc 07). All
    built-in rules use the `engintel.` prefix, which contract ids cannot use.
-3. **Policy weakening rule id:** deferred to ENG-012 in Phase 2, together with
-   `policy-change/expected.json`.
+3. **Policy weakening rule id:** `engintel.policy-weakening` (ENG-012), in the
+   built-in namespace rather than FR-012's `policy.weakening` or ENG-012's
+   `policy.change`. Tightenings are reported as `engintel.policy-change`
+   (advisory), and dropping a baseline entry whose violation still exists is
+   `engintel.baseline-drop`.
 4. **Violation identity separator:** `\u001f` (ENG-035), `identityVersion: 1`.
    Known-answer vectors live in `packages/policy/testdata/identity-vectors.json`.

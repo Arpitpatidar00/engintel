@@ -67,6 +67,11 @@ export function formatValidation(report: ValidationReport, style: Style): string
   // Blocking findings first, then the rest, each in report order.
   const ordered = [...report.diagnostics.filter((d) => d.blocking), ...report.diagnostics.filter((d) => !d.blocking)];
   for (const d of ordered) out.push("", ...formatDiagnostic(d, style));
+  const policyItems = report.policyChange?.items ?? [];
+  if (policyItems.length > 0) {
+    out.push("", "Policy changes (compared with the merge base):");
+    for (const item of policyItems) out.push(`  ${item.class.padEnd(10)}  ${item.file}: ${item.summary}`);
+  }
   if (report.exceptionsApplied.length > 0) {
     out.push("", `Exceptions applied: ${report.exceptionsApplied.length}`);
     for (const e of report.exceptionsApplied) out.push(`  ${e.exceptionId}: ${e.source} -> ${e.target} (${e.ruleId}, expires ${e.expiresAt})`);

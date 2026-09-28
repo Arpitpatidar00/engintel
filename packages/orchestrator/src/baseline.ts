@@ -44,11 +44,15 @@ function verified(loaded: LoadedBaseline | null, where: string): LoadedBaseline 
 
 export function loadBaselineContext(
   root: string,
-  base: { readonly baseline: string | null } | undefined,
+  base: { readonly baseline?: string | null } | undefined,
   defaultBranchText: string | null | undefined,
 ): BaselineContext {
   const head = verified(loadBaseline(root), "");
   if (!base) return { head, reference: head, comparedWith: "working-copy", defaultBranch: null };
+  if (base.baseline === undefined) {
+    // Unchanged since the merge base.
+    return { head, reference: head, comparedWith: "merge-base", defaultBranch: null };
+  }
   const at = (text: string | null | undefined, where: string) =>
     text === null || text === undefined ? null : verified(parseBaselineText(text, BASELINE_PATH, where), where);
   return {

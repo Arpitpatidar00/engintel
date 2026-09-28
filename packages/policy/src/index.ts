@@ -16,6 +16,7 @@ export {
 export {
   compareDiagnostics,
   evaluate,
+  withDiagnostics,
   type EvaluationInput,
   type EvaluationResult,
   type ExceptionApplication,
@@ -61,3 +62,15 @@ export {
   isBaselineEligible,
   type BaselineIntegrityIssue,
 } from "./baseline.js";
+
+export {
+  baselineDropViolations,
+  classifyBaselineChange,
+  classifyConfigChange,
+  classifyContractChange,
+  classifyIgnoreChange,
+  policyChangeViolations,
+  type BaselineChange,
+  type ChangeClass,
+  type PolicyChangeItem,
+} from "./policy-change.js";

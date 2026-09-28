@@ -2,7 +2,7 @@
 // Copyright 2026 The EngIntel Authors
 
 import type { Diagnostic } from "@engintel/config";
-import type { EvaluationResult, Scope } from "@engintel/policy";
+import type { EvaluationResult, PolicyChangeItem, Scope } from "@engintel/policy";
 
 /**
  * Run reports: the JSON reporter prints these verbatim. They contain no
@@ -48,6 +48,11 @@ export interface ValidationReport {
   readonly counts: EvaluationResult["counts"];
   /** null when the repository has no baseline. */
   readonly baseline: BaselineSection | null;
+  /**
+   * Changes to .engintel policy files compared with the merge base (ENG-012).
+   * null when there is no base to compare with (a local run without --changed).
+   */
+  readonly policyChange: { readonly items: readonly PolicyChangeItem[] } | null;
   readonly diagnostics: readonly Diagnostic[];
   readonly exceptionsApplied: EvaluationResult["exceptionsApplied"];
   readonly unanalyzable: EvaluationResult["unanalyzable"];

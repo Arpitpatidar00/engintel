@@ -36,6 +36,7 @@ export const IDENTITY_TOKENS = [
   "<unlayered>",
   "<overlapping-layers>",
   "<unportable-path>",
+  "<policy>",
 ] as const;
 
 export interface IdentityInput {

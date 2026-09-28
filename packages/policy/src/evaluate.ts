@@ -446,6 +446,20 @@ function forwardReachable(adjacency: Adjacency, seeds: readonly string[]): Set<s
   return seen;
 }
 
+/** Add findings produced outside the rule engine (policy changes) and recompute counts and outcome. */
+export function withDiagnostics(result: EvaluationResult, extra: readonly Violation[]): EvaluationResult {
+  if (extra.length === 0) return result;
+  const added = extra.map(toDiagnostic);
+  const diagnostics = [...result.diagnostics, ...added].sort(compareDiagnostics);
+  const count = (severity: Diagnostic["severity"]) => diagnostics.filter((d) => d.severity === severity).length;
+  return {
+    ...result,
+    outcome: diagnostics.some((d) => d.blocking) ? "fail" : "pass",
+    counts: { ...result.counts, errors: count("error"), warnings: count("warning"), advisories: count("advisory") },
+    diagnostics,
+  };
+}
+
 export function compareDiagnostics(a: Diagnostic, b: Diagnostic): number {
   return (
     compare(a.file ?? "", b.file ?? "") ||
