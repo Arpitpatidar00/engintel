@@ -12,6 +12,8 @@ import {
   type ErrorReport,
 } from "@engintel/orchestrator";
 import { Command, CommanderError, Option } from "commander";
+import { registerBaseline } from "./baseline-cmd.js";
+import type { CliIO } from "./io.js";
 import { COLOR, PLAIN, formatAnalysis, formatError, formatValidation } from "./human.js";
 
 /**
@@ -21,15 +23,6 @@ import { COLOR, PLAIN, formatAnalysis, formatError, formatValidation } from "./h
  * configuration, contract, or usage error. Nothing here reads repository
  * code as instructions, and nothing is written outside .engintel/.
  */
-
-export interface CliIO {
-  readonly stdout: { write(chunk: string): unknown; readonly isTTY?: boolean | undefined };
-  readonly stderr: { write(chunk: string): unknown };
-  readonly cwd: string;
-  readonly env: Readonly<Record<string, string | undefined>>;
-  /** Today's UTC date, YYYY-MM-DD. The only place the CLI reads a clock. */
-  readonly today: () => string;
-}
 
 type Format = "human" | "json";
 
@@ -119,6 +112,8 @@ export async function main(argv: readonly string[], io: CliIO): Promise<number> 
         exitCode = fail("analyze", options.format, error);
       }
     });
+
+  registerBaseline(program, { io, fail, setExitCode: (code) => (exitCode = code) });
 
   try {
     await program.parseAsync([...argv], { from: "user" });

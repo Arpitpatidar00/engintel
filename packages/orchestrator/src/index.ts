@@ -25,4 +25,4 @@ export {
   type Report,
   type ValidationReport,
 } from "./report.js";
-export { buildBaseline, writeBaseline, type BaselineWriteOptions, type BaselineWriteResult } from "./baseline-write.js";
+export { buildBaseline, inspectBaseline, writeBaseline, type BaselineSummary, type BaselineWriteOptions, type BaselineWriteResult } from "./baseline-write.js";

@@ -140,3 +140,42 @@ export async function writeBaseline(options: BaselineWriteOptions): Promise<Base
   }
   return built;
 }
+
+export interface BaselineSummary {
+  readonly file: string;
+  readonly present: boolean;
+  readonly writtenBy: string | null;
+  readonly writtenAt: string | null;
+  readonly policyVersionAtWrite: string | null;
+  readonly entries: number;
+  readonly byRule: readonly { readonly ruleId: string; readonly entries: number }[];
+  readonly oldestFirstSeenAt: string | null;
+  /** Integrity problems; empty when every identity recomputes from its fields. */
+  readonly issues: readonly { readonly path: string; readonly message: string }[];
+}
+
+/** Read and integrity-check the baseline without evaluating the repository. */
+export function inspectBaseline(rootInput: string): BaselineSummary {
+  try {
+    const loaded = loadBaseline(resolve(rootInput));
+    if (!loaded) {
+      return { file: BASELINE_PATH, present: false, writtenBy: null, writtenAt: null, policyVersionAtWrite: null, entries: 0, byRule: [], oldestFirstSeenAt: null, issues: [] };
+    }
+    const { baseline } = loaded;
+    const counts = new Map<string, number>();
+    for (const e of baseline.entries) counts.set(e.ruleId, (counts.get(e.ruleId) ?? 0) + 1);
+    return {
+      file: loaded.file,
+      present: true,
+      writtenBy: baseline.writtenBy,
+      writtenAt: baseline.writtenAt,
+      policyVersionAtWrite: baseline.policyVersionAtWrite,
+      entries: baseline.entries.length,
+      byRule: [...counts].map(([ruleId, n]) => ({ ruleId, entries: n })).sort((a, b) => b.entries - a.entries || (a.ruleId < b.ruleId ? -1 : 1)),
+      oldestFirstSeenAt: baseline.entries.map((e) => e.firstSeenAt).sort()[0] ?? null,
+      issues: checkBaselineIntegrity(baseline),
+    };
+  } catch (error) {
+    throw toToolError(error);
+  }
+}
