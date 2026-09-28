@@ -101,7 +101,7 @@ export async function main(argv: readonly string[], io: CliIO): Promise<number> 
     .description("build the module graph and summarize the repository; enforces nothing")
     .option("--root <dir>", "repository root", ".")
     .addOption(formatOption())
-    .option("--no-cache", "do not write .engintel/cache/graph.json")
+    .option("--no-cache", "do not write .engintel/cache/ (graph.json, symbols.json)")
     .action(async (options: CommonOptions & { readonly cache: boolean }) => {
       try {
         const report = await analyzeRepository({ root: resolve(io.cwd, options.root), writeCache: options.cache });

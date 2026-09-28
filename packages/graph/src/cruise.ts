@@ -173,7 +173,7 @@ function isRelative(specifier: string): boolean {
  * control characters, prose, over-long) is replaced by a digest. Legitimate
  * specifiers pass through unchanged.
  */
-const PLAUSIBLE_SPECIFIER = /^[A-Za-z0-9@._~#$%+=,!/-]{1,214}$/;
+const PLAUSIBLE_SPECIFIER = /^[A-Za-z0-9@._~#$%+=,!/:-]{1,214}$/;
 
 export function safeSpecifier(specifier: string): string {
   if (PLAUSIBLE_SPECIFIER.test(specifier)) return specifier;

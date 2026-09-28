@@ -106,6 +106,15 @@ describe("validateRepository: full scope", () => {
     expect(r.diagnostics.map((d) => [d.ruleId, d.file])).toEqual([["engintel.unanalyzable", "src/services/order.service.ts"]]);
   });
 
+  test("externals.allowUnresolved tolerates listed specifiers, including scheme-style ones", async () => {
+    const root = copyOf("valid-architecture", { "src/services/routes.service.ts": 'import routes from "virtual:routes";\nexport default routes;\n' });
+    const failing = await validateRepository({ root, now });
+    expect(failing.diagnostics.map((d) => [d.ruleId, d.edge?.target])).toEqual([["no-unresolved-in-src", "unresolved:virtual:routes"]]);
+    const contract = JSON.parse(readFileSync(join(root, contractPath), "utf8")) as Record<string, unknown>;
+    writeFileSync(join(root, contractPath), JSON.stringify({ ...contract, externals: { allowUnresolved: ["virtual:*"] } }));
+    expect((await validateRepository({ root, now })).outcome).toBe("pass");
+  });
+
   test("validate writes nothing", async () => {
     const root = copyOf("invalid-layer");
     const before = snapshotTree(root);

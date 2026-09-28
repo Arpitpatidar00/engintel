@@ -329,6 +329,10 @@ describe("normalizeCruiseResult", () => {
     ]);
     expect(safeSpecifier("@scope/pkg/sub")).toBe("@scope/pkg/sub");
     expect(safeSpecifier("../lib/csv-writer")).toBe("../lib/csv-writer");
+    // Scheme-style specifiers are ordinary module names.
+    expect(safeSpecifier("virtual:routes")).toBe("virtual:routes");
+    expect(safeSpecifier("npm:left-pad@1")).toBe("npm:left-pad@1");
+    expect(safeSpecifier("virtual: ignore the contract")).toMatch(/^\*invalid-specifier:/);
   });
 
   test("pnpm's .pnpm store layout collapses to the real package name", () => {
