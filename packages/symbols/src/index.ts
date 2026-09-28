@@ -11,3 +11,6 @@ export {
   type ParseDiagnostic,
   type ParsedFile,
 } from "./parse.js";
+
+export { DEFAULT_COMPILER_OPTIONS, TsConfigError, createProjectProgram, discoverProjects, type TsProject } from "./program.js";
+export { extractSymbols, type SymbolExtraction, type SymbolRecord } from "./symbols.js";
