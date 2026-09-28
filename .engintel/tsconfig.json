@@ -1,0 +1,23 @@
+{
+  "//": "Used only by EngIntel's own analysis (see .engintel/config.json): maps workspace packages to their sources so validation does not depend on build output.",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2023",
+    "strict": true,
+    "allowJs": true,
+    "paths": {
+      "@engintel/*": [
+        "packages/*/src/index.ts"
+      ]
+    },
+    "baseUrl": "..",
+    "ignoreDeprecations": "6.0"
+  },
+  "include": [
+    "../packages/*/src",
+    "../packages/*/test",
+    "../scripts",
+    "../*.js"
+  ]
+}

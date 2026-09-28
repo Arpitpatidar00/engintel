@@ -272,12 +272,12 @@ describe("CI and ownership", () => {
     for (const step of ["pnpm lint", "pnpm typecheck", "pnpm test"]) assert.ok(ci.includes(step), `missing ${step}`);
   });
 
-  test("CODEOWNERS covers policy code and the published schemas", () => {
+  test("CODEOWNERS covers the contract, policy code, and the published schemas", () => {
     const owners = readFileSync(join(ROOT, ".github", "CODEOWNERS"), "utf8")
       .split("\n")
       .filter((line) => line.trim() && !line.trim().startsWith("#"))
       .map((line) => line.trim().split(/\s+/));
-    for (const path of ["/packages/policy/", "/packages/config/schema/"]) {
+    for (const path of ["/.engintel/", "/packages/policy/", "/packages/config/schema/"]) {
       const entry = owners.find(([pattern]) => pattern === path);
       assert.ok(entry && entry.length > 1 && entry.slice(1).every((o) => o.startsWith("@")), `${path} needs an owner`);
     }

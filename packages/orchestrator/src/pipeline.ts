@@ -36,6 +36,11 @@ export interface ValidateOptions extends PipelineOptions {
   readonly scope?: Scope;
   /** UTC date YYYY-MM-DD used for exception expiry. */
   readonly now: string;
+  /**
+   * Evaluate a draft contract as a preview instead of refusing it. For tests
+   * and tooling only: the CLI never sets it, so a draft is never enforced.
+   */
+  readonly allowDraft?: boolean;
 }
 
 export interface AnalyzeOptions extends PipelineOptions {
@@ -137,7 +142,7 @@ export async function validateRepository(options: ValidateOptions): Promise<Vali
     const root = resolve(options.root);
     const scope = normalizeScope(options.scope);
     const loaded = loadContract(root);
-    if (loaded.contract.status !== "active") {
+    if (loaded.contract.status !== "active" && !options.allowDraft) {
       throw new ToolError(
         "E_CONTRACT_DRAFT",
         `${loaded.file} has status "draft". Draft contracts are never enforced: review the layers, set status to "active", and commit.`,

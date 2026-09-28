@@ -1,0 +1,152 @@
+{
+  "$schema": "../packages/config/schema/architecture.schema.json",
+  "schemaVersion": 1,
+  "policyVersion": "0.1.0",
+  "status": "draft",
+  "description": "EngIntel's own package architecture (dogfood, research doc 03). Draft: not enforced until reviewed by the architecture owners and set to active.",
+  "layers": [
+    {
+      "id": "foundation",
+      "description": "Shared types, schemas, loaders, and path rules. Depends on no other EngIntel package.",
+      "globs": ["packages/config/src/**", "packages/obs/src/**"]
+    },
+    {
+      "id": "readers",
+      "description": "Repository readers: the scanner and the TypeScript parse and symbol passes.",
+      "globs": ["packages/scanner/src/**", "packages/symbols/src/**"]
+    },
+    {
+      "id": "graph",
+      "description": "The dependency-cruiser adapter, module graph, and cycle detection.",
+      "globs": ["packages/graph/src/**"]
+    },
+    {
+      "id": "policy",
+      "description": "Pure rule evaluation, diagnostics, and violation identity. No I/O.",
+      "globs": ["packages/policy/src/**"]
+    },
+    {
+      "id": "repair",
+      "description": "The repair loop (later phase).",
+      "globs": ["packages/repair/src/**"]
+    },
+    {
+      "id": "orchestrator",
+      "description": "The analysis pipeline shared by every surface.",
+      "globs": ["packages/orchestrator/src/**"]
+    },
+    {
+      "id": "surfaces",
+      "description": "Entry points: the CLI, the GitHub Action, and the MCP server.",
+      "globs": ["packages/cli/src/**", "packages/action/src/**", "packages/mcp/src/**"]
+    },
+    {
+      "id": "testkit",
+      "description": "Golden fixture loading and test helpers. Never shipped.",
+      "globs": ["packages/testkit/src/**"]
+    },
+    {
+      "id": "tests",
+      "description": "Package tests, workspace scripts, and root tool configuration.",
+      "globs": ["packages/*/test/**", "scripts/**", "*.config.js"]
+    }
+  ],
+  "rules": [
+    {
+      "id": "foundation-is-a-leaf",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": { "layer": "foundation" },
+      "to": { "layers": ["readers", "graph", "policy", "repair", "orchestrator", "surfaces", "testkit", "tests"] },
+      "comment": "Everything depends on the foundation, so it depends on nothing else in EngIntel."
+    },
+    {
+      "id": "readers-and-graph-below-policy",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": { "layers": ["readers", "graph"] },
+      "to": { "layers": ["policy", "repair", "orchestrator", "surfaces", "testkit", "tests"] },
+      "comment": "Analysis produces facts; it never judges them or knows who called it."
+    },
+    {
+      "id": "policy-is-pure",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": { "layer": "policy" },
+      "to": { "layers": ["readers", "repair", "orchestrator", "surfaces", "testkit", "tests"] },
+      "comment": "Rule evaluation is a pure function of the graph, the contract, and an injected clock. Reading files belongs to the readers, wiring to the orchestrator."
+    },
+    {
+      "id": "orchestrator-below-surfaces",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": { "layer": "orchestrator" },
+      "to": { "layers": ["surfaces", "testkit", "tests"] },
+      "comment": "One pipeline serves the CLI, the Action, and MCP alike; it must not know which one is calling."
+    },
+    {
+      "id": "action-and-mcp-stay-apart",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": { "glob": "packages/action/src/**" },
+      "to": { "glob": "packages/mcp/src/**" },
+      "direction": "both",
+      "comment": "The merge authority (the Action's required check) and the agent-facing MCP server share only the orchestrator (research doc 03, section 8)."
+    },
+    {
+      "id": "no-testkit-in-production",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": { "layers": ["foundation", "readers", "graph", "policy", "repair", "orchestrator", "surfaces"] },
+      "to": { "layers": ["testkit", "tests"] },
+      "comment": "Test helpers and fixtures never ship."
+    },
+    {
+      "id": "dependency-cruiser-only-in-graph",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": { "layers": ["foundation", "readers", "policy", "repair", "orchestrator", "surfaces", "testkit"] },
+      "to": { "external": "dependency-cruiser" },
+      "comment": "dependency-cruiser's JSON never leaves the graph adapter, so the extractor can be replaced without touching the validator (D-001)."
+    },
+    {
+      "id": "commander-only-in-surfaces",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": { "layers": ["foundation", "readers", "graph", "policy", "repair", "orchestrator"] },
+      "to": { "external": "commander" },
+      "comment": "Argument parsing belongs to entry points."
+    },
+    {
+      "id": "no-llm-sdks",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": { "glob": "**" },
+      "to": { "external": "{openai,ai,ollama,cohere-ai,langchain,@anthropic-ai/*,@langchain/*,@ai-sdk/*,@google/generative-ai,@google/genai,@mistralai/*}" },
+      "comment": "The agent is never the authority: no model calls anywhere in EngIntel, including tests and CI."
+    },
+    {
+      "id": "acyclic-packages",
+      "kind": "acyclic",
+      "severity": "error",
+      "within": { "glob": "packages/*/src/**" },
+      "comment": "Module cycles hide ownership and make the pipeline order ambiguous."
+    },
+    {
+      "id": "imports-resolve",
+      "kind": "forbidden",
+      "severity": "error",
+      "from": { "glob": "**" },
+      "to": { "unresolved": true },
+      "comment": "Every import must resolve to a file or an installed package."
+    }
+  ],
+  "unlayered": {
+    "severity": "warn",
+    "comment": "New top-level code should join a layer, or the contract should say why it does not."
+  },
+  "opaqueImports": "error",
+  "ownership": {
+    "policyCodeowners": ["@engintel/architecture-owners"]
+  }
+}

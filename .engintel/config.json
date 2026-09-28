@@ -1,0 +1,6 @@
+{
+  "$schema": "../packages/config/schema/config.schema.json",
+  "schemaVersion": 1,
+  "exclude": ["tests/golden/**"],
+  "tsconfig": ".engintel/tsconfig.json"
+}

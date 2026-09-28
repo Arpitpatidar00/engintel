@@ -2,6 +2,7 @@
 # fixtures, and CI. Replace @engintel/architecture-owners with a real team
 # before enabling "Require review from Code Owners" in the branch ruleset.
 
+/.engintel/                @engintel/architecture-owners
 /packages/policy/          @engintel/architecture-owners
 /packages/config/schema/   @engintel/architecture-owners
 /tests/golden/             @engintel/architecture-owners
