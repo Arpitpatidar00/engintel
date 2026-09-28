@@ -7,7 +7,7 @@ import { loadConfig, loadContract, normalizeRepoPath, type LoadedConfig, type Lo
 import { buildModuleGraph, findCycles, serializeGraph, type CruiseFn, type ModuleGraph } from "@engintel/graph";
 import { IDENTITY_VERSION, LayerIndex, evaluate, type FileFacts, type Scope, type SourceFileState } from "@engintel/policy";
 import { scanRepository, type ScanResult, type ScannedFile } from "@engintel/scanner";
-import { parseSourceFiles, type ParsedFile } from "@engintel/symbols";
+import { extractSymbols, parseSourceFiles, type ParsedFile } from "@engintel/symbols";
 import { ToolError, toToolError } from "./errors.js";
 import { REPORT_SCHEMA_VERSION, type AnalysisReport, type ContractSummary, type ValidationReport } from "./report.js";
 
@@ -21,6 +21,7 @@ import { REPORT_SCHEMA_VERSION, type AnalysisReport, type ContractSummary, type 
 export const ENGINE_VERSION: string = (JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as { version: string }).version;
 
 export const GRAPH_CACHE_PATH = ".engintel/cache/graph.json";
+export const SYMBOLS_CACHE_PATH = ".engintel/cache/symbols.json";
 
 export interface PipelineOptions {
   /** Repository root. */
@@ -181,11 +182,16 @@ export async function analyzeRepository(options: AnalyzeOptions): Promise<Analys
       if (!(error instanceof Error && "code" in error && error.code === "E_CONTRACT_MISSING")) throw error;
     }
     const { config, scan, graph, files } = await analyze(options);
+    const analyzable = files.filter((f) => f.unanalyzable === null).map((f) => f.path);
+    const tsconfig = config.config.tsconfig;
+    const symbols = extractSymbols(root, analyzable, tsconfig ? { tsconfig } : {});
     const writeCache = options.writeCache ?? true;
-    if (writeCache) writeInsideEngintel(root, GRAPH_CACHE_PATH, serializeGraph(graph));
+    if (writeCache) {
+      writeInsideEngintel(root, GRAPH_CACHE_PATH, serializeGraph(graph));
+      writeInsideEngintel(root, SYMBOLS_CACHE_PATH, `${JSON.stringify({ schemaVersion: 1, ...symbols }, null, 2)}\n`);
+    }
 
     const index = loaded ? new LayerIndex(loaded.contract) : null;
-    const analyzable = files.filter((f) => f.unanalyzable === null).map((f) => f.path);
     const count = (kind: string) => graph.nodes.filter((n) => n.kind === kind).length;
     const sources = scan.files.filter((f) => f.kind === "source");
     const status = (s: ScannedFile["status"]) => sources.filter((f) => f.status === s).length;
@@ -215,6 +221,11 @@ export async function analyzeRepository(options: AnalyzeOptions): Promise<Analys
         unresolved: count("unresolved"),
         edges: graph.edges.length,
         cycles: findCycles(graph).length,
+      },
+      symbols: {
+        file: writeCache ? SYMBOLS_CACHE_PATH : null,
+        exported: symbols.symbols.length,
+        projects: symbols.projects.map((p) => ({ configFile: p.configFile, files: p.files })),
       },
       layers: loaded && index ? loaded.contract.layers.map((l) => ({ id: l.id, files: analyzable.filter((p) => index.layerOf(p) === l.id).length })) : [],
       unlayered: index ? analyzable.filter((p) => index.layersOf(p).length === 0).length : 0,

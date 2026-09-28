@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { goldenRoot } from "@engintel/testkit";
 import { afterEach, describe, expect, test } from "vitest";
-import { GRAPH_CACHE_PATH, ToolError, analyzeRepository, validateRepository, writeInsideEngintel } from "../src/index.js";
+import { GRAPH_CACHE_PATH, SYMBOLS_CACHE_PATH, ToolError, analyzeRepository, validateRepository, writeInsideEngintel } from "../src/index.js";
 
 const created: string[] = [];
 afterEach(() => {
@@ -134,8 +134,11 @@ describe("analyzeRepository", () => {
       unlayered: 0,
       unanalyzable: [],
     });
+    expect(r.symbols).toEqual({ file: SYMBOLS_CACHE_PATH, exported: 7, projects: [{ configFile: "tsconfig.json", files: 6 }] });
     const after = snapshotTree(root);
-    expect(Object.keys(after).filter((p) => !(p in before))).toEqual([GRAPH_CACHE_PATH]);
+    expect(Object.keys(after).filter((p) => !(p in before)).sort()).toEqual([GRAPH_CACHE_PATH, SYMBOLS_CACHE_PATH]);
+    const cached = JSON.parse(readFileSync(join(root, SYMBOLS_CACHE_PATH), "utf8")) as { symbols: { file: string; name: string; kind: string }[] };
+    expect(cached.symbols.find((s) => s.name === "OrderService")).toMatchObject({ file: "src/services/order.service.ts", kind: "class" });
     const graph = JSON.parse(readFileSync(join(root, GRAPH_CACHE_PATH), "utf8")) as { edges: { from: string; to: string }[] };
     // ENG-030: "who imports order.repository.ts" from the persisted graph.
     const importers = graph.edges.filter((e) => e.to === "src/repositories/order.repository.ts").map((e) => e.from);

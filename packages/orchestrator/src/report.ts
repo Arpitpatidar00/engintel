@@ -60,6 +60,12 @@ export interface AnalysisReport {
     readonly edges: number;
     readonly cycles: number;
   };
+  /** Exported symbols from the TypeScript checker (ENG-029); configFile null is the default project. */
+  readonly symbols: {
+    readonly file: string | null;
+    readonly exported: number;
+    readonly projects: readonly { readonly configFile: string | null; readonly files: number }[];
+  };
   /** Files per layer, in contract order; empty without a contract. */
   readonly layers: readonly { readonly id: string; readonly files: number }[];
   readonly unlayered: number;

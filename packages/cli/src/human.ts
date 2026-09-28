@@ -77,7 +77,9 @@ export function formatAnalysis(report: AnalysisReport, style: Style): string {
     `Tree: sha256 ${report.repository.treeHash}`,
     `Graph: ${plural(g.modules, "module")}, ${plural(g.edges, "dependency", "dependencies")}, ${g.external} external, ${g.core} core, ${g.unresolved} unresolved, ${plural(g.cycles, "cycle")}`,
   ];
-  if (g.file) out.push(`Cached: ${g.file}`);
+  out.push(`Symbols: ${plural(report.symbols.exported, "exported symbol")} from ${plural(report.symbols.projects.length, "TypeScript project")}`);
+  const cached = [g.file, report.symbols.file].filter((f): f is string => f !== null);
+  if (cached.length > 0) out.push(`Cached: ${cached.join(", ")}`);
   if (report.contract) {
     out.push(`Contract: ${report.contract.file} (policy ${report.contract.policyVersion}, ${report.contract.status})`, "Layers:");
     const width = Math.max(...report.layers.map((l) => l.id.length), 10);

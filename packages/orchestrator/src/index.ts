@@ -5,6 +5,7 @@ export { ToolError, toToolError } from "./errors.js";
 export {
   ENGINE_VERSION,
   GRAPH_CACHE_PATH,
+  SYMBOLS_CACHE_PATH,
   analyzeRepository,
   validateRepository,
   writeInsideEngintel,
