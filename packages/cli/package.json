@@ -33,6 +33,7 @@
   "devDependencies": {
     "@engintel/testkit": "workspace:*",
     "@types/node": "catalog:",
+    "@types/sarif": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:"

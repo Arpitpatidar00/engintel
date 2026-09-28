@@ -17,6 +17,7 @@ catalog:
   picomatch: 4.0.7
   "@types/picomatch": 4.0.3
   commander: 15.0.0
+  "@types/sarif": 2.1.7
   ajv: 8.20.0
   eslint: 10.11.0
   "@eslint/js": 10.0.1
