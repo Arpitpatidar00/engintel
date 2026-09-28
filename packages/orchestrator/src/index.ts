@@ -7,9 +7,11 @@ export {
   GRAPH_CACHE_PATH,
   SYMBOLS_CACHE_PATH,
   analyzeRepository,
+  changedScopeFromGit,
   validateRepository,
   writeInsideEngintel,
   type AnalyzeOptions,
+  type GitScope,
   type PipelineOptions,
   type ValidateOptions,
 } from "./pipeline.js";

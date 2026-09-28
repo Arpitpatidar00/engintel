@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 The EngIntel Authors
 
-import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, lstatSync, readFileSync, readdirSync, type Stats } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { RepoPathError, normalizeRepoPath } from "@engintel/config";
 import ignore, { type Ignore } from "ignore";
 import picomatch from "picomatch";
+import { git, isGitWorkTree } from "./git.js";
 
 /**
  * Repository file inventory (ENG-003, research doc 04 section 3).
@@ -127,7 +127,7 @@ export function scanRepository(rootInput: string, options: ScanOptions = {}): Sc
     throw new ScanError("E_ROOT_NOT_FOUND", `repository root is not a directory: ${root}`);
   }
   const limits = { ...DEFAULTS, ...options };
-  const listing = options.listing === "walk" ? "walk" : options.listing === "git" || insideGitWorkTree(root) ? "git" : "walk";
+  const listing = options.listing === "walk" ? "walk" : options.listing === "git" || isGitWorkTree(root) ? "git" : "walk";
   const candidates = (listing === "git" ? listWithGit(root) : listByWalking(root)).filter((p) => !isSkipped(p));
   if (candidates.length > limits.maxFiles) {
     throw new ScanError("E_REPO_TOO_LARGE", `repository has ${candidates.length} files; the limit is ${limits.maxFiles}`);
@@ -225,27 +225,6 @@ function loadIgnoreFile(path: string): Ignore {
   const matcher = ignore();
   if (existsSync(path)) matcher.add(readFileSync(path, "utf8"));
   return matcher;
-}
-
-// Repository config is untrusted: never let it run code while we list files.
-const GIT_SAFETY = ["-c", "core.fsmonitor=false", "-c", "core.hooksPath=/dev/null", "-c", "core.quotePath=false"];
-
-function git(root: string, args: string[]): string {
-  return execFileSync("git", [...GIT_SAFETY, "-C", root, ...args], {
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "ignore"],
-    maxBuffer: 512 * 1024 * 1024,
-    timeout: 60_000,
-    env: { ...process.env, GIT_OPTIONAL_LOCKS: "0" },
-  });
-}
-
-function insideGitWorkTree(root: string): boolean {
-  try {
-    return git(root, ["rev-parse", "--is-inside-work-tree"]).trim() === "true";
-  } catch {
-    return false;
-  }
 }
 
 /** Tracked plus untracked-but-not-ignored files under root, relative to root. */

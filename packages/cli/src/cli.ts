@@ -67,9 +67,14 @@ export async function main(argv: readonly string[], io: CliIO): Promise<number> 
     for (const line of lines) io.stderr.write(`engintel: note: ${line}\n`);
   };
 
-  const validate = async (options: CommonOptions & { readonly now?: string }) => {
+  const validate = async (options: CommonOptions & { readonly now?: string; readonly changed?: boolean; readonly base?: string }) => {
     try {
-      const report = await validateRepository({ root: resolve(io.cwd, options.root), now: options.now ?? io.today() });
+      const changedSince = options.changed || options.base !== undefined ? (options.base ?? defaultBase(io.env)) : undefined;
+      const report = await validateRepository({
+        root: resolve(io.cwd, options.root),
+        now: options.now ?? io.today(),
+        ...(changedSince === undefined ? {} : { changedSince }),
+      });
       io.stdout.write(options.format === "json" ? serializeReport(report) : formatValidation(report, style));
       notices(report.notices);
       exitCode = report.exitCode;
@@ -91,6 +96,8 @@ export async function main(argv: readonly string[], io: CliIO): Promise<number> 
       .option("--root <dir>", "repository root", ".")
       .addOption(formatOption())
       .option("--now <date>", "UTC date (YYYY-MM-DD) for exception expiry; default today")
+      .option("--changed", "check only what changed since the merge base with --base")
+      .option("--base <ref>", "git ref to diff against (implies --changed); default origin/$GITHUB_BASE_REF, else origin/HEAD")
       .action(validate);
 
   addValidate(program.command("validate"));
@@ -122,6 +129,12 @@ export async function main(argv: readonly string[], io: CliIO): Promise<number> 
     return fail("engintel", "human", error);
   }
   return exitCode;
+}
+
+/** The base ref for --changed: the pull request's base branch in GitHub Actions, else the remote's default branch. */
+export function defaultBase(env: Readonly<Record<string, string | undefined>>): string {
+  const pr = env["GITHUB_BASE_REF"];
+  return pr ? `origin/${pr}` : "origin/HEAD";
 }
 
 export function todayUtc(date: Date = new Date()): string {

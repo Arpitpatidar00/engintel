@@ -13,6 +13,7 @@
       ],
       "contractChanged": false
     },
+    "git": null,
     "contract": {
       "file": ".engintel/architecture.json",
       "status": "active",
@@ -50,6 +51,7 @@
     "scope": {
       "mode": "full"
     },
+    "git": null,
     "contract": {
       "file": ".engintel/architecture.json",
       "status": "active",

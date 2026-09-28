@@ -14,3 +14,14 @@ export {
   type ScannedFile,
   type UnreadableReason,
 } from "./scan.js";
+
+export {
+  GitError,
+  changedFilesSince,
+  isGitWorkTree,
+  mergeBase,
+  resolveCommit,
+  showFileAt,
+  type ChangedFiles,
+  type GitErrorCode,
+} from "./git.js";

@@ -476,6 +476,16 @@ describe("scope", () => {
     expect(run({ edges, scope: changed(["src/domain/order.ts"]) }).outcome).toBe("pass");
   });
 
+  test("deleting a file brings its importers into scope through the now-unresolved import", () => {
+    // src/services/order.service.ts imported ../lib/money, which the change deleted.
+    const dangling: E[] = [...CLEAN, ["src/services/order.service.ts", "unresolved:src/lib/money", "import", "../lib/money"]];
+    const deleted = run({ edges: dangling, scope: changed(["src/lib/money.ts"]) });
+    expect(deleted.diagnostics.map((d) => [d.ruleId, d.file])).toEqual([["no-unresolved-in-src", "src/services/order.service.ts"]]);
+    const index: E[] = [...CLEAN, ["src/services/order.service.ts", "unresolved:src/lib", "import", "../lib"]];
+    expect(run({ edges: index, scope: changed(["src/lib/index.ts"]) }).outcome).toBe("fail");
+    expect(run({ edges: dangling, scope: changed(["src/domain/order.ts"]) }).outcome).toBe("pass");
+  });
+
   test("a contract change re-evaluates everything", () => {
     expect(run({ edges, scope: changed(["src/domain/order.ts"], true) }).outcome).toBe("fail");
   });

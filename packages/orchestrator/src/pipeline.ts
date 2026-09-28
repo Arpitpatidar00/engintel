@@ -3,10 +3,10 @@
 
 import { lstatSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { loadConfig, loadContract, normalizeRepoPath, type LoadedConfig, type LoadedContract } from "@engintel/config";
+import { CONTRACT_PATH, RepoPathError, loadConfig, loadContract, normalizeRepoPath, type LoadedConfig, type LoadedContract } from "@engintel/config";
 import { buildModuleGraph, findCycles, serializeGraph, type CruiseFn, type ModuleGraph } from "@engintel/graph";
 import { IDENTITY_VERSION, LayerIndex, evaluate, type FileFacts, type Scope, type SourceFileState } from "@engintel/policy";
-import { scanRepository, type ScanResult, type ScannedFile } from "@engintel/scanner";
+import { changedFilesSince, mergeBase, resolveCommit, scanRepository, type ScanResult, type ScannedFile } from "@engintel/scanner";
 import { extractSymbols, parseSourceFiles, type ParsedFile } from "@engintel/symbols";
 import { ToolError, toToolError } from "./errors.js";
 import { REPORT_SCHEMA_VERSION, type AnalysisReport, type ContractSummary, type ValidationReport } from "./report.js";
@@ -33,7 +33,13 @@ export interface PipelineOptions {
 }
 
 export interface ValidateOptions extends PipelineOptions {
+  /** An explicit scope (tests, golden scenarios). Mutually exclusive with `changedSince`. */
   readonly scope?: Scope;
+  /**
+   * Validate only what changed since the merge base of HEAD and this git ref
+   * (ENG-010): committed, uncommitted, and untracked changes.
+   */
+  readonly changedSince?: string;
   /** UTC date YYYY-MM-DD used for exception expiry. */
   readonly now: string;
   /**
@@ -127,10 +133,37 @@ async function analyze(options: PipelineOptions): Promise<Analysis> {
   return { config, scan, graph, files, facts };
 }
 
+/** Canonical form of a changed path; an unportable path keeps its POSIX spelling, as the scanner reports it. */
+function changedPath(path: string): string {
+  try {
+    return normalizeRepoPath(path);
+  } catch (error) {
+    if (error instanceof RepoPathError && error.code === "E_PATH_UNPORTABLE") return path.replaceAll("\\", "/");
+    throw error;
+  }
+}
+
 function normalizeScope(scope: Scope | undefined): Scope {
   if (!scope || scope.mode === "full") return { mode: "full" };
-  const changedFiles = [...new Set(scope.changedFiles.map((p) => normalizeRepoPath(p)))].sort();
+  const changedFiles = [...new Set(scope.changedFiles.map(changedPath))].sort();
   return { mode: "changed", changedFiles, contractChanged: scope.contractChanged };
+}
+
+export interface GitScope {
+  readonly scope: Scope;
+  readonly git: { readonly base: string; readonly baseCommit: string; readonly mergeBase: string };
+}
+
+/** Scope from git: everything that differs from the merge base of HEAD and `base`. */
+export function changedScopeFromGit(rootInput: string, base: string): GitScope {
+  const root = resolve(rootInput);
+  const baseCommit = resolveCommit(root, base);
+  const fork = mergeBase(root, base);
+  const { changed } = changedFilesSince(root, fork);
+  return {
+    scope: normalizeScope({ mode: "changed", changedFiles: changed, contractChanged: changed.includes(CONTRACT_PATH) }),
+    git: { base, baseCommit, mergeBase: fork },
+  };
 }
 
 /** `engintel validate`: judge the repository against its active contract. */
@@ -140,7 +173,9 @@ export async function validateRepository(options: ValidateOptions): Promise<Vali
       throw new ToolError("E_USAGE", `now must be a UTC date (YYYY-MM-DD), got "${options.now}"`);
     }
     const root = resolve(options.root);
-    const scope = normalizeScope(options.scope);
+    if (options.scope && options.changedSince !== undefined) throw new ToolError("E_USAGE", "pass either a scope or changedSince, not both");
+    const fromGit = options.changedSince === undefined ? null : changedScopeFromGit(root, options.changedSince);
+    const scope = fromGit ? fromGit.scope : normalizeScope(options.scope);
     const loaded = loadContract(root);
     if (loaded.contract.status !== "active" && !options.allowDraft) {
       throw new ToolError(
@@ -160,6 +195,7 @@ export async function validateRepository(options: ValidateOptions): Promise<Vali
       exitCode: result.outcome === "fail" ? 1 : 0,
       now: options.now,
       scope,
+      git: fromGit ? fromGit.git : null,
       contract: summarize(loaded),
       repository: { treeHash: scan.treeHash },
       counts: result.counts,

@@ -122,8 +122,12 @@ export function evaluate(input: EvaluationInput): EvaluationResult {
   const layerGraph = new LayerGraph(contract);
   const adjacency = buildAdjacency(graph);
   const changed = input.scope.mode === "changed" && !input.scope.contractChanged ? new Set(input.scope.changedFiles) : null;
+  const changedTargets = changed === null ? null : unresolvedIdsOf(changed);
   const fileInScope = (path: string) => changed === null || changed.has(path);
-  const edgeInScope = (edge: GraphEdge) => changed === null || changed.has(edge.from) || changed.has(edge.to);
+  // An import of a changed (e.g. deleted or renamed) file that no longer
+  // resolves is still an edge to that file: its importer comes into scope.
+  const edgeInScope = (edge: GraphEdge) =>
+    changed === null || changed.has(edge.from) || changed.has(edge.to) || (changedTargets?.has(edge.to) ?? false);
   const analyzable = files.filter((f) => f.unanalyzable === null).map((f) => f.path);
   const opaqueSeverity: ContractSeverity = contract.opaqueImports === "error" ? "error" : "warn";
 
@@ -377,6 +381,25 @@ export function evaluate(input: EvaluationInput): EvaluationResult {
     unanalyzable,
     stats: { files: files.length, filesInScope: files.filter((f) => fileInScope(f.path)).length, edges: graph.edges.length, edgesEvaluated },
   };
+}
+
+const SOURCE_EXTENSION = /\.(?:[cm]?[jt]s|[jt]sx)$/;
+
+/**
+ * The unresolved node ids an import of each path would produce once the path
+ * is gone: the specifier without its extension, and the directory for an
+ * index file ("src/lib/index.ts" -> "unresolved:src/lib").
+ */
+function unresolvedIdsOf(paths: ReadonlySet<string>): Set<string> {
+  const ids = new Set<string>();
+  for (const path of paths) {
+    if (!SOURCE_EXTENSION.test(path)) continue;
+    const bare = path.replace(SOURCE_EXTENSION, "");
+    ids.add(`unresolved:${bare}`);
+    ids.add(`unresolved:${path}`);
+    if (bare.endsWith("/index")) ids.add(`unresolved:${bare.slice(0, -"/index".length)}`);
+  }
+  return ids;
 }
 
 function forwardReachable(adjacency: Adjacency, seeds: readonly string[]): Set<string> {

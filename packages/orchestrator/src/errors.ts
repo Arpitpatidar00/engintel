@@ -3,7 +3,7 @@
 
 import { ConfigError, RepoPathError } from "@engintel/config";
 import { GraphError } from "@engintel/graph";
-import { ScanError } from "@engintel/scanner";
+import { GitError, ScanError } from "@engintel/scanner";
 import { TsConfigError } from "@engintel/symbols";
 
 /**
@@ -30,7 +30,7 @@ export class ToolError extends Error {
 export function toToolError(error: unknown): ToolError {
   if (error instanceof ToolError) return error;
   if (error instanceof ConfigError) return new ToolError(error.code, error.message, { file: error.file, issues: error.issues, cause: error });
-  if (error instanceof ScanError || error instanceof GraphError) return new ToolError(error.code, error.message, { cause: error });
+  if (error instanceof ScanError || error instanceof GraphError || error instanceof GitError) return new ToolError(error.code, error.message, { cause: error });
   if (error instanceof RepoPathError) return new ToolError(error.code, error.message, { cause: error });
   if (error instanceof TsConfigError) return new ToolError(error.code, error.message, { file: error.file, cause: error });
   return new ToolError("E_INTERNAL", `internal error: ${error instanceof Error ? error.message : String(error)}`, { cause: error });

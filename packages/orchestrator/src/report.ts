@@ -29,6 +29,8 @@ export interface ValidationReport {
   readonly exitCode: 0 | 1;
   readonly now: string;
   readonly scope: Scope;
+  /** Set for `--changed` runs: the base ref, its commit, and the merge base the diff was taken from. */
+  readonly git: { readonly base: string; readonly baseCommit: string; readonly mergeBase: string } | null;
   readonly contract: ContractSummary;
   readonly repository: { readonly treeHash: string };
   readonly counts: EvaluationResult["counts"];

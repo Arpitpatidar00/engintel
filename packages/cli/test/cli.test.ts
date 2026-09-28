@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 The EngIntel Authors
 
+import { execFileSync } from "node:child_process";
 import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { DiagnosticSchema } from "@engintel/config";
 import { goldenRoot, runCli } from "@engintel/testkit";
 import { afterEach, describe, expect, test } from "vitest";
-import { main, todayUtc, type CliIO } from "../src/index.js";
+import { defaultBase, main, todayUtc, type CliIO } from "../src/index.js";
 
 const created: string[] = [];
 afterEach(() => {
@@ -98,6 +99,49 @@ describe("engintel validate (ENG-008 definition of done, end to end)", () => {
     expect(r.exitCode).toBe(1);
     expect(r.stderr).toBe("");
     expect(r.stdout).not.toMatch(/SYSTEM OVERRIDE|approved|ignore previous/i);
+  });
+});
+
+describe("engintel validate --changed (ENG-010)", () => {
+  const env = {
+    GIT_AUTHOR_NAME: "t",
+    GIT_AUTHOR_EMAIL: "t@example.com",
+    GIT_COMMITTER_NAME: "t",
+    GIT_COMMITTER_EMAIL: "t@example.com",
+    GIT_CONFIG_GLOBAL: "/dev/null",
+    GIT_CONFIG_NOSYSTEM: "1",
+  };
+  const git = (cwd: string, ...args: string[]) => execFileSync("git", args, { cwd, env: { ...process.env, ...env }, stdio: "ignore" });
+
+  function pr(id: string): string {
+    const root = copyOf(id);
+    git(root, "init", "-q", "-b", "main");
+    git(root, "add", "-A");
+    git(root, "commit", "-q", "-m", "base");
+    git(root, "checkout", "-q", "-b", "pr");
+    return root;
+  }
+
+  test("legacy debt outside the diff passes; a new violation in the diff fails", async () => {
+    const root = pr("invalid-layer");
+    const clean = await runCli(["validate", "--changed", "--base", "main"], { cwd: root });
+    expect(clean.exitCode).toBe(0);
+    expect(clean.stdout).toMatch(/Scope: 0 changed files since [0-9a-f]{12} \(merge base with main\)/);
+    writeFileSync(join(root, "src/controllers/refund.controller.ts"), 'import { OrderRepository } from "../repositories/order.repository";\nexport const r = new OrderRepository();\n');
+    const dirty = await runCli(["validate", "--base", "main", "--format", "json"], { cwd: root });
+    expect(dirty.exitCode).toBe(1);
+    expect((JSON.parse(dirty.stdout) as { diagnostics: { file: string }[] }).diagnostics.map((d) => d.file)).toEqual(["src/controllers/refund.controller.ts"]);
+  });
+
+  test("an unknown base is exit 2 with a hint", async () => {
+    const r = await runCli(["validate", "--changed", "--base", "origin/nope"], { cwd: pr("valid-architecture") });
+    expect(r).toMatchObject({ exitCode: 2, errorCode: "E_GIT_BAD_REF" });
+    expect(r.stderr).toContain("git fetch origin nope");
+  });
+
+  test("the default base follows the pull request in GitHub Actions", () => {
+    expect(defaultBase({ GITHUB_BASE_REF: "main" })).toBe("origin/main");
+    expect(defaultBase({})).toBe("origin/HEAD");
   });
 });
 

@@ -13,6 +13,7 @@
       ],
       "contractChanged": false
     },
+    "git": null,
     "contract": {
       "file": ".engintel/architecture.json",
       "status": "active",
@@ -74,6 +75,7 @@
       ],
       "contractChanged": false
     },
+    "git": null,
     "contract": {
       "file": ".engintel/architecture.json",
       "status": "active",
@@ -165,6 +167,7 @@
       ],
       "contractChanged": false
     },
+    "git": null,
     "contract": {
       "file": ".engintel/architecture.json",
       "status": "active",

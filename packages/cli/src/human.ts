@@ -47,7 +47,12 @@ function formatDiagnostic(d: Diagnostic, style: Style): string[] {
 export function formatValidation(report: ValidationReport, style: Style): string {
   const { counts } = report;
   const verdict = report.outcome === "pass" ? style.green(style.bold("PASS")) : style.red(style.bold("FAIL"));
-  const scope = report.scope.mode === "full" ? "full repository" : `${plural(report.scope.changedFiles.length, "changed file")}`;
+  const scope =
+    report.scope.mode === "full"
+      ? "full repository"
+      : report.git
+        ? `${plural(report.scope.changedFiles.length, "changed file")} since ${report.git.mergeBase.slice(0, 12)} (merge base with ${report.git.base})`
+        : plural(report.scope.changedFiles.length, "changed file");
   const out = [
     `EngIntel validate: ${verdict} (${plural(counts.errors, "error")}, ${plural(counts.warnings, "warning")}, ${plural(counts.advisories, "advisory", "advisories")})`,
     `Contract: ${report.contract.file} (policy ${report.contract.policyVersion}, ${report.contract.status})`,
