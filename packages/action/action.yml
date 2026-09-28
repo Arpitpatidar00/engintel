@@ -1,0 +1,111 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 The EngIntel Authors
+#
+# EngIntel architecture gate (ENG-011, ENG-040). Runs the same CLI developers
+# run, on the pull request's own checkout: engintel validate --changed
+# against the merge base. It never trusts results posted by an agent, an MCP
+# transcript, or any local artifact (FR-011).
+#
+# Usage: see packages/action/README.md. Pin this action to a commit sha.
+
+name: EngIntel architecture gate
+description: Fails the pull request when it adds architecture violations or weakens the architecture policy without owners' approval.
+author: The EngIntel Authors
+
+inputs:
+  working-directory:
+    description: Repository root to validate, relative to the workspace.
+    default: "."
+  base:
+    description: Git ref to diff against. Default origin/<pull request base branch>; empty on push events, which validate everything.
+    default: ""
+  policy-change-label:
+    description: Pull request label with which architecture owners approve weakening .engintel policy.
+    default: policy-change
+  baseline-change-label:
+    description: Pull request label with which architecture owners approve growing the baseline.
+    default: baseline-change
+  setup-node:
+    description: Install Node 22 with actions/setup-node. Set to "false" if the job already provides Node 22.
+    default: "true"
+
+outputs:
+  outcome:
+    description: pass, fail, or error.
+    value: ${{ steps.validate.outputs.outcome }}
+  exit-code:
+    description: 0 pass, 1 blocking violations, 2 no verdict.
+    value: ${{ steps.validate.outputs.exit-code }}
+  sarif-file:
+    description: Path of the SARIF 2.1.0 report, for github/codeql-action/upload-sarif.
+    value: ${{ steps.validate.outputs.sarif-file }}
+  report-file:
+    description: Path of the JSON report.
+    value: ${{ steps.validate.outputs.report-file }}
+
+runs:
+  using: composite
+  steps:
+    - if: inputs.setup-node == 'true'
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+      with:
+        node-version: "22"
+
+    - id: keys
+      shell: bash
+      env:
+        ENGINTEL_HOME: ${{ github.action_path }}/../..
+        ENGINTEL_WORKSPACE: ${{ github.workspace }}/${{ inputs.working-directory }}
+      run: node "$GITHUB_ACTION_PATH/scripts/cache-keys.mjs"
+
+    - id: build-cache
+      uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ${{ github.action_path }}/../../node_modules
+          ${{ github.action_path }}/../../packages/*/node_modules
+          ${{ github.action_path }}/../../packages/*/dist
+        key: ${{ steps.keys.outputs.build-key }}
+
+    - shell: bash
+      env:
+        ENGINTEL_HOME: ${{ github.action_path }}/../..
+        BUILD_CACHE_HIT: ${{ steps.build-cache.outputs.cache-hit }}
+      run: bash "$GITHUB_ACTION_PATH/scripts/build.sh"
+
+    - if: steps.build-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: |
+          ${{ github.action_path }}/../../node_modules
+          ${{ github.action_path }}/../../packages/*/node_modules
+          ${{ github.action_path }}/../../packages/*/dist
+        key: ${{ steps.keys.outputs.build-key }}
+
+    - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ github.workspace }}/${{ inputs.working-directory }}/.engintel/cache/graph-cache.json
+        key: ${{ steps.keys.outputs.graph-key }}
+        restore-keys: ${{ steps.keys.outputs.graph-restore-prefix }}
+
+    - id: validate
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      env:
+        ENGINTEL_BIN: ${{ github.action_path }}/../../packages/cli/dist/bin.js
+        INPUT_WORKING_DIRECTORY: ${{ inputs.working-directory }}
+        INPUT_BASE: ${{ inputs.base }}
+        POLICY_CHANGE_APPROVED: ${{ contains(github.event.pull_request.labels.*.name, inputs.policy-change-label) }}
+        BASELINE_CHANGE_APPROVED: ${{ contains(github.event.pull_request.labels.*.name, inputs.baseline-change-label) }}
+      run: bash "$GITHUB_ACTION_PATH/scripts/run.sh"
+
+    - if: always()
+      uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ github.workspace }}/${{ inputs.working-directory }}/.engintel/cache/graph-cache.json
+        key: ${{ steps.keys.outputs.graph-key }}
+
+    - shell: bash
+      env:
+        EXIT_CODE: ${{ steps.validate.outputs.exit-code }}
+      run: exit "${EXIT_CODE:-2}"

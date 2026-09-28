@@ -47,8 +47,8 @@
     },
     {
       "id": "tests",
-      "description": "Package tests, workspace scripts, and root tool configuration.",
-      "globs": ["packages/*/test/**", "scripts/**", "*.config.js"]
+      "description": "Package tests and scripts, workspace scripts, and root tool configuration.",
+      "globs": ["packages/*/test/**", "packages/*/scripts/**", "scripts/**", "*.config.js"]
     }
   ],
   "rules": [

@@ -12,7 +12,11 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "action.yml",
+    "scripts",
+    "README.md",
+    "examples"
   ],
   "engines": {
     "node": ">=22.13.0"
@@ -23,9 +27,12 @@
     "test": "vitest run --passWithNoTests"
   },
   "devDependencies": {
+    "@engintel/cli": "workspace:*",
+    "@engintel/testkit": "workspace:*",
     "@types/node": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "yaml": "catalog:"
   }
 }

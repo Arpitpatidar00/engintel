@@ -1,0 +1,42 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright 2026 The EngIntel Authors
+#
+# Copy to .github/workflows/engintel.yml. The job name "architecture" is the
+# status check context your ruleset requires: renaming it breaks the ruleset.
+# Replace <sha> with the EngIntel commit you have reviewed.
+
+name: engintel
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  architecture:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write # only for the SARIF upload step
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # --changed needs the merge base
+          persist-credentials: false
+
+      # Install your project's dependencies so imports of packages resolve.
+      # - run: npm ci --ignore-scripts
+
+      - id: engintel
+        uses: Arpitpatidar00/engintel/packages/action@<sha>
+
+      # Optional: code scanning annotations (public repositories, or GitHub Advanced Security).
+      - if: always() && steps.engintel.outputs.sarif-file != ''
+        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        with:
+          sarif_file: ${{ steps.engintel.outputs.sarif-file }}
+          category: engintel
