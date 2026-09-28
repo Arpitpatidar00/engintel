@@ -40,10 +40,9 @@ function sources(root: string, dir = "src"): string[] {
 const edgeList = (g: ModuleGraph) => g.edges.map((e) => `${e.from} -> ${e.to} [${e.kind}]`);
 const nodeOf = (g: ModuleGraph, id: string) => g.nodes.find((n) => n.id === id);
 
-async function golden(id: string, doNotFollow: string[] = []): Promise<ModuleGraph> {
+async function golden(id: string, skip: string[] = []): Promise<ModuleGraph> {
   const root = join(goldenRoot(), id, "repo");
-  const files = sources(root).filter((f) => !doNotFollow.includes(f));
-  return buildModuleGraph({ root, files, doNotFollow });
+  return buildModuleGraph({ root, files: sources(root).filter((f) => !skip.includes(f)) });
 }
 
 describe("golden fixtures", () => {
@@ -78,7 +77,7 @@ describe("golden fixtures", () => {
     expect(edgeList(g)).toContain("src/domain/pricing.ts -> src/domain/discount.ts [import]");
   });
 
-  test("unreadable-files: doNotFollow files are never parsed, and nothing imports them", async () => {
+  test("unreadable-files: files not passed in are never parsed, and nothing imports them", async () => {
     const skip = ["src/legacy/vendor-blob.ts", "src/services/corrupt.service.ts", "src/services/truncated.service.ts"];
     const g = await golden("unreadable-files", skip);
     for (const path of skip) {
@@ -137,6 +136,30 @@ describe("resolution", () => {
     expect(nodeOf(g, "external:lodash")).toEqual({ id: "external:lodash", kind: "external" });
     expect(nodeOf(g, "core:fs")).toEqual({ id: "core:fs", kind: "core" });
     expect(g.nodes.some((n) => n.id.includes("node_modules"))).toBe(false);
+  });
+
+  test("packages with conditional exports resolve (ESM-only and workspace-style packages)", async () => {
+    const root = tree({
+      "node_modules/esm-only/package.json": JSON.stringify({ name: "esm-only", version: "1.0.0", type: "module", exports: { ".": { import: "./dist/index.js" }, "./sub": { import: "./dist/sub.js" } } }),
+      "node_modules/esm-only/dist/index.js": "export const a = 1;\n",
+      "node_modules/esm-only/dist/sub.js": "export const b = 1;\n",
+      "package.json": JSON.stringify({ name: "fixture", type: "module", dependencies: { "esm-only": "1.0.0" } }),
+      "src/main.ts": 'import { a } from "esm-only";\nimport { b } from "esm-only/sub";\nexport default [a, b];\n',
+    });
+    const g = await buildModuleGraph({ root, files: sources(root) });
+    expect(edgeList(g)).toEqual(["src/main.ts -> external:esm-only [import]", "src/main.ts -> external:esm-only [import]"]);
+  });
+
+  test("files outside the list are targets only: never parsed, their imports never followed", async () => {
+    const root = tree({
+      "src/main.ts": 'import { x } from "./generated";\nexport default x;\n',
+      // Not in the file list (e.g. gitignored build output). Its import must not appear.
+      "src/generated.ts": 'import "./secret-dependency";\nexport const x = 1;\n',
+      "src/secret-dependency.ts": "export {};\n",
+    });
+    const g = await buildModuleGraph({ root, files: ["src/main.ts"] });
+    expect(edgeList(g)).toEqual(["src/main.ts -> src/generated.ts [import]"]);
+    expect(nodeOf(g, "src/secret-dependency.ts")).toBeUndefined();
   });
 
   test("without a tsconfig, path aliases are unresolved rather than guessed", async () => {
@@ -217,7 +240,6 @@ describe("fail closed (ENG-030)", () => {
     await buildModuleGraph({
       root,
       files: ["src/b.ts", "src/a.ts"],
-      doNotFollow: ["src/bad(1).ts"],
       tsconfig: null,
       cruiseImpl: (f, options) => {
         seen = { files: f, options };
@@ -228,7 +250,8 @@ describe("fail closed (ENG-030)", () => {
     expect(seen?.options).toMatchObject({ baseDir: root, tsPreCompilationDeps: true, cache: false });
     expect(seen?.options).not.toHaveProperty("ruleSet");
     expect(seen?.options).not.toHaveProperty("webpackConfig");
-    expect((seen?.options["doNotFollow"] as { path: string[] }).path).toEqual(["(^|/)node_modules/", "^src/bad\\(1\\)\\.ts$"]);
+    expect(seen?.options["doNotFollow"]).toEqual({ path: [".+"] });
+    expect(seen?.options["enhancedResolveOptions"]).toEqual({ exportsFields: ["exports"], conditionNames: ["import", "require", "node", "default"] });
   });
 });
 
@@ -306,6 +329,21 @@ describe("normalizeCruiseResult", () => {
     ]);
     expect(safeSpecifier("@scope/pkg/sub")).toBe("@scope/pkg/sub");
     expect(safeSpecifier("../lib/csv-writer")).toBe("../lib/csv-writer");
+  });
+
+  test("pnpm's .pnpm store layout collapses to the real package name", () => {
+    const g = normalizeCruiseResult({
+      modules: [
+        {
+          source: "src/a.ts",
+          dependencies: [
+            { resolved: "node_modules/.pnpm/commander@15.0.0/node_modules/commander/index.js", module: "commander", dependencyTypes: ["npm"] },
+            { resolved: "node_modules/.pnpm/@scope+pkg@1.0.0/node_modules/@scope/pkg/lib/x.js", module: "@scope/pkg/x", dependencyTypes: ["npm"] },
+          ],
+        },
+      ],
+    });
+    expect(g.edges.map((e) => e.to)).toEqual(["external:@scope/pkg", "external:commander"]);
   });
 
   test("packageName", () => {

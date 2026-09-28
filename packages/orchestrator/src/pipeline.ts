@@ -97,12 +97,10 @@ async function analyze(options: PipelineOptions): Promise<Analysis> {
   }
   const byPath = new Map(parsed.map((p) => [p.path, p]));
   const analyzable = parsed.filter((p) => p.syntaxErrors.length === 0);
-  const doNotFollow = sources.filter((f) => f.status !== "ok" || (byPath.get(f.path)?.syntaxErrors.length ?? 0) > 0).map((f) => f.path);
 
   const graph = await buildModuleGraph({
     root,
     files: analyzable.map((p) => p.path),
-    doNotFollow,
     ...(tsconfig ? { tsconfig } : {}),
     timeoutMs: limits.graphTimeoutMs,
     ...(options.cruiseImpl ? { cruiseImpl: options.cruiseImpl } : {}),

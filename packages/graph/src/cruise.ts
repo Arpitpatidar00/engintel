@@ -32,13 +32,12 @@ export class GraphError extends Error {
 export interface BuildGraphOptions {
   /** Absolute repository root. */
   readonly root: string;
-  /** Canonical repo paths of the source files to analyze. */
-  readonly files: readonly string[];
   /**
-   * Files that may be imported but must never be parsed: unanalyzable and
-   * ignored files. Edges into them are kept; edges out of them are not read.
+   * Canonical repo paths of the source files to analyze. Only these are ever
+   * parsed: every other module (unanalyzable, ignored, gitignored build
+   * output, node_modules) appears as an edge target but is never read.
    */
-  readonly doNotFollow?: readonly string[];
+  readonly files: readonly string[];
   /** Repo path of the tsconfig used for path mapping. Default: tsconfig.json when present. */
   readonly tsconfig?: string | null;
   /** Default 120 000 ms (research doc 05, section 13). */
@@ -53,8 +52,6 @@ export type CruiseFn = (
   resolveOptions: Record<string, unknown>,
   transpileOptions: Record<string, unknown>,
 ) => Promise<{ output: unknown }>;
-
-const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 async function realCruise(...args: Parameters<CruiseFn>): Promise<{ output: unknown }> {
   const { cruise } = await import("dependency-cruiser");
@@ -82,15 +79,16 @@ export async function buildModuleGraph(options: BuildGraphOptions): Promise<Modu
     }
   }
 
-  const doNotFollow = [
-    "(^|/)node_modules/",
-    ...(options.doNotFollow ?? []).map((p) => `^${escapeRegex(p)}$`),
-  ];
   const cruiseOptions: Record<string, unknown> = {
     baseDir: root,
     outputType: "json",
     tsPreCompilationDeps: true,
-    doNotFollow: { path: doNotFollow },
+    // Cruise exactly the files passed in and follow nothing: a module the
+    // scanner did not list and approve is never parsed.
+    doNotFollow: { path: [".+"] },
+    // Resolve package.json "exports" like Node does; without conditions every
+    // package with conditional exports would be reported as unresolved.
+    enhancedResolveOptions: { exportsFields: ["exports"], conditionNames: ["import", "require", "node", "default"] },
     exoticRequireStrings: [],
     combinedDependencies: false,
     preserveSymlinks: false,
@@ -204,7 +202,9 @@ function nodeFor(
   const resolvedPath = entry.resolved.replaceAll("\\", "/");
   const isNpm = entry.dependencyTypes?.some((t) => NPM_TYPES.has(t)) ?? false;
   if (isNpm || /(^|\/)node_modules\//.test(resolvedPath)) {
-    const fromModules = /(?:^|\/)node_modules\/((?:@[^/]+\/)?[^/]+)/.exec(resolvedPath)?.[1];
+    // The last node_modules segment names the package, also in pnpm's
+    // node_modules/.pnpm/<pkg>@<version>/node_modules/<pkg>/ layout.
+    const fromModules = [...resolvedPath.matchAll(/(?:^|\/)node_modules\/((?:@[^/]+\/)?[^/]+)/g)].at(-1)?.[1];
     return { id: `external:${fromModules ?? packageName(spec)}`, kind: "external" };
   }
   try {
