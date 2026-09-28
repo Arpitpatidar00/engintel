@@ -12,6 +12,12 @@ SARIF, the GitHub Action, and the MCP server come in later phases.
 
 ## Use
 
+**Read [docs/usage.md](docs/usage.md)** for the full guide: setup, writing a
+contract, commands, exit codes, reading results, and troubleshooting. To test
+EngIntel itself, see [docs/testing.md](docs/testing.md).
+
+Quick start:
+
 ```sh
 pnpm install && pnpm build
 node packages/cli/dist/bin.js validate --root path/to/repo            # human report
