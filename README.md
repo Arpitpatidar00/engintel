@@ -5,10 +5,14 @@ agents modify. A versioned contract (`.engintel/architecture.json`), a
 deterministic validator, and a GitHub required check that re-runs the validator
 independently. The agent is never the authority.
 
-**Status: Phase 1 (analysis MVP).** `engintel validate` checks a repository
-against its contract and exits 0 (pass), 1 (blocking violations), or 2 (no
-verdict: tool, configuration, or contract error). Baselines, `--changed`,
-SARIF, the GitHub Action, and the MCP server come in later phases.
+**Status: Phase 2 (architecture gate).** `engintel validate` checks a
+repository against its contract and exits 0 (pass), 1 (blocking violations),
+or 2 (no verdict). Existing debt is recorded in a baseline so only new
+violations fail; `--changed` checks what a pull request changed against the
+merge base; edits that weaken `.engintel/` policy fail unless owners approve
+them; results are available as SARIF; and a GitHub Action
+([`packages/action`](packages/action/README.md)) runs it as a required check.
+The MCP server for agents comes in Phase 3.
 
 ## Use
 
@@ -63,8 +67,8 @@ To regenerate `expected.json` after an intended change in wording or behaviour
 ENGINTEL_UPDATE_EXPECTED=1 pnpm --filter @engintel/orchestrator test
 ```
 
-Decisions are recorded in `docs/phase-0-decisions.md` and
-`docs/phase-1-decisions.md`.
+Decisions are recorded in `docs/phase-0-decisions.md`,
+`docs/phase-1-decisions.md`, and `docs/phase-2-decisions.md`.
 
 ## License
 

@@ -48,12 +48,13 @@ pnpm --filter @engintel/<package> test
 | Package | What it does | What its tests cover |
 | --- | --- | --- |
 | `config` | Contract and config schemas and loaders, paths, shared diagnostic type | Valid and invalid contracts, loader errors, secret rejection, schema drift |
-| `scanner` | Lists repository files and marks the unreadable ones | git and walk listings agree, binary, too-large, symlink, permission, `.gitignore` |
+| `scanner` | Lists repository files and marks the unreadable ones; the only place git runs | git and walk listings agree, binary, too-large, symlink, permission, `.gitignore`; changed files, merge base, hostile refs, repository config that must not run |
 | `symbols` | TypeScript parsing, tsconfig projects, exported symbols | Syntax errors, opaque imports, project references, symbol kinds |
-| `graph` | Import graph via dependency-cruiser, cycles | Type-only, dynamic, and unresolved edges; packages; crash and timeout; cycle signatures |
-| `policy` | Rule engine, messages, suggested routes, identity hash | Every rule kind, exceptions, scope, fail-closed, identity vectors |
-| `orchestrator` | The full pipeline used by the CLI | Golden fixtures, exit-2 errors, write safety, EngIntel's own contract |
-| `cli` | The `engintel` command | Exit codes end to end, reporters, usage errors |
+| `graph` | Import graph via dependency-cruiser, cycles, incremental reuse | Type-only, dynamic, and unresolved edges; packages; crash and timeout; cycle signatures; cache keys and partial reuse |
+| `policy` | Rule engine, messages, suggested routes, identity hash, baselines, policy changes | Every rule kind, exceptions, scope, fail-closed, identity vectors, baseline integrity, pairwise policy diffs |
+| `orchestrator` | The full pipeline used by the CLI | Golden fixtures, exit-2 errors, write safety, `--changed` on real git repos, baselines, policy-change attacks, graph cache, EngIntel's own contract |
+| `cli` | The `engintel` command | Exit codes end to end, reporters (human, JSON, SARIF, Markdown), `baseline` and `report` commands, usage errors |
+| `action` | The GitHub Action | `action.yml` and the example workflow checked structurally; `run.sh` run under a simulated GitHub Actions environment; cache keys |
 | `testkit` | Golden fixture loading and hashing | Manifest, tree hashes, scenario loading |
 | `mcp` | Trust types for the future MCP server | No result can claim approval |
 
@@ -128,7 +129,24 @@ Things to check by hand, in a copy of `valid-architecture`:
 | Set `"status": "draft"` in the contract | Exit 2, `E_CONTRACT_DRAFT` |
 | Delete the contract | Exit 2, `E_CONTRACT_MISSING` |
 | Run `validate --format json` twice | Byte-identical output |
-| Run `analyze` | Exit 0; `.engintel/cache/graph.json` and `symbols.json` appear, nothing else changes |
+| Run `analyze` | Exit 0; `.engintel/cache/graph.json`, `symbols.json`, and `graph-cache.json` appear, nothing else changes |
+| Run `validate --verbose` twice | The second run logs `graph cache: hit` |
+| `engintel baseline write --written-by you --yes` in a copy of `invalid-layer`, then `validate` | Exit 0; add another skip-layer import and it fails again |
+| Run `validate --format sarif` | SARIF 2.1.0 on stdout |
+
+### Pull requests by hand
+
+Turn a fixture copy into a small git repository with a branch, then check the
+branch the way CI does:
+
+```sh
+cd ~/engintel-try/invalid-layer
+git init -q -b main && git add -A && git commit -qm base && git checkout -qb pr
+engintel validate --changed --base main; echo "exit: $?"    # 0: the existing debt is not in the diff
+# add a new skip-layer import in src/controllers/, then run it again: exit 1
+# delete no-controller-to-repository from .engintel/architecture.json: engintel.policy-weakening
+engintel validate --changed --base main --policy-change-approved   # approved: a warning, not a failure
+```
 
 ## EngIntel on itself
 

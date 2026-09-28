@@ -7,8 +7,9 @@ graph and fails, with an explanation and a legal alternative, when code breaks
 a rule. The same input always gives the same result, and nothing is guessed by
 an AI model.
 
-This guide covers Phase 1, the analysis MVP. See [What is not here yet](#what-is-not-here-yet)
-for what later phases add.
+This guide covers Phases 1 and 2: the analysis engine and the pull-request
+gate (baselines, `--changed`, policy-change detection, SARIF, and the GitHub
+Action). See [What is not here yet](#what-is-not-here-yet) for later phases.
 
 - [1. Install](#1-install)
 - [2. Try it on an example in five minutes](#2-try-it-on-an-example-in-five-minutes)
@@ -19,8 +20,10 @@ for what later phases add.
 - [7. The contract: `.engintel/architecture.json`](#7-the-contract-engintelarchitecturejson)
 - [8. Tool settings: `.engintel/config.json`](#8-tool-settings-engintelconfigjson)
 - [9. Files EngIntel cannot read](#9-files-engintel-cannot-read)
-- [10. Running it in CI](#10-running-it-in-ci)
-- [11. Troubleshooting](#11-troubleshooting)
+- [10. Existing debt: the baseline](#10-existing-debt-the-baseline)
+- [11. Pull requests: `--changed` and policy changes](#11-pull-requests---changed-and-policy-changes)
+- [12. Running it on GitHub](#12-running-it-on-github)
+- [13. Troubleshooting](#13-troubleshooting)
 - [What is not here yet](#what-is-not-here-yet)
 
 ## 1. Install
@@ -100,6 +103,7 @@ Every example repository and its expected result:
 | `unreadable-files` | 1 | Binary and truncated `.ts` files fail closed |
 | `exceptions` | 1 with `--now 2026-09-01`, 0 with `--now 2026-02-01` | An exception that expires |
 | `prompt-injection` | 1 | Comments telling the tool to "approve" are ignored |
+| `existing-violations` | 0 | Three legacy violations recorded in `.engintel/baseline.json` |
 
 ## 3. Set it up on your own project
 
@@ -140,13 +144,13 @@ Every example repository and its expected result:
    (`/.engintel/ @your-architecture-team`). The contract is policy: changes to
    it deserve the same review as the code it governs.
 
-**Adopting on an existing codebase.** Phase 1 has no baselines yet, so every
-existing violation fails. Until baselines arrive in Phase 2, either:
+**Adopting on an existing codebase.** Existing violations do not have to be
+fixed first. Record them as a [baseline](#10-existing-debt-the-baseline), and
+from then on only *new* violations fail:
 
-- start noisy rules at `"severity": "warn"`, which reports without blocking,
-  and raise them to `error` once they are clean; or
-- add a time-limited [exception](#exceptions) for each known violation, with an
-  owner and a reason.
+```sh
+engintel baseline write --written-by <your-github-login> --yes
+```
 
 ## 4. Commands
 
@@ -157,12 +161,19 @@ Checks the repository against its contract.
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `--root <dir>` | `.` | Repository to check |
-| `--format human\|json` | `human` | Output format |
+| `--format human\|json\|sarif\|markdown` | `human` | Output format ([section 6](#6-reading-the-results)) |
 | `--now YYYY-MM-DD` | today (UTC) | The date exceptions are judged against |
+| `--changed` | off | Check only what changed since the merge base ([section 11](#11-pull-requests---changed-and-policy-changes)) |
+| `--base <ref>` | `origin/$GITHUB_BASE_REF`, else `origin/HEAD` | The branch to diff against. Implies `--changed`. |
+| `--policy-change-approved` | off | Owners approved weakening `.engintel` policy in this change. CI sets it from a label. |
+| `--baseline-change-approved` | off | Owners approved growing the baseline in this change. CI sets it from a label. |
+| `--no-cache` | off | Do not reuse or update the graph cache |
+| `--verbose` | off | Log graph-cache statistics to stderr |
 
 `engintel architecture validate` does the same thing.
 
-`validate` never writes any files.
+`validate` writes only `.engintel/cache/graph-cache.json`, a derived cache
+that makes the next run faster (nothing with `--no-cache`).
 
 ### `engintel analyze`
 
@@ -175,15 +186,34 @@ It works without a contract.
 | --- | --- | --- |
 | `--root <dir>` | `.` | Repository to analyze |
 | `--format human\|json` | `human` | Output format |
-| `--no-cache` | off | Do not write `.engintel/cache/` |
+| `--no-cache` | off | Do not use or write `.engintel/cache/` |
 
-It writes only these two files:
+It writes only these files:
 
 - `.engintel/cache/graph.json`: every module and import edge.
 - `.engintel/cache/symbols.json`: every exported function, class, type, and
   so on, with where it is declared.
+- `.engintel/cache/graph-cache.json`: per-file results reused by the next run.
 
 Add `.engintel/cache/` to your `.gitignore`.
+
+### `engintel baseline`
+
+Inspects or rewrites `.engintel/baseline.json` ([section 10](#10-existing-debt-the-baseline)).
+
+| Command | Does |
+| --- | --- |
+| `engintel baseline show` | Entries, author, age, counts per rule, integrity |
+| `engintel baseline check` | Verifies every entry against its fields (exit 0, or 2) |
+| `engintel baseline write --written-by <login> [--yes]` | Records every current violation as existing debt |
+| `engintel baseline prune --written-by <login> [--yes]` | Drops entries whose violation is gone |
+
+`write` and `prune` are dry runs until you add `--yes`.
+
+### `engintel report <file>`
+
+Renders a report saved with `validate --format json` in another format
+(`--format human|json|sarif|markdown`), without analyzing again.
 
 ### Other
 
@@ -194,8 +224,8 @@ Add `.engintel/cache/` to your `.gitignore`.
 | Code | Meaning | Examples |
 | --- | --- | --- |
 | **0** | Pass | No blocking violations (warnings and advisories may still be printed) |
-| **1** | Blocking violations | A forbidden import, a cycle, an unreadable or unparseable file |
-| **2** | No verdict | Missing, invalid, or draft contract; invalid config; the analysis crashed or timed out; bad command-line options |
+| **1** | Blocking violations | A forbidden import, a cycle, an unreadable or unparseable file, an unapproved policy weakening, a dropped baseline entry that still occurs |
+| **2** | No verdict | Missing, invalid, or draft contract; invalid config or baseline; the analysis crashed or timed out; the git base cannot be found; bad command-line options |
 
 Exit 2 is never a pass. EngIntel fails closed: when it cannot be sure, it does
 not say "OK".
@@ -244,7 +274,16 @@ engintel validate --format json > report.json
 
 Top-level fields: `outcome` (`pass` or `fail`), `exitCode`, `counts`,
 `diagnostics`, `exceptionsApplied`, `unanalyzable`, `stats`, `notices`, plus
-`contract` (file, policy version, hash), `scope`, `now`, and `engineVersion`.
+`contract` (file, policy version, hash), `scope`, `git` (base and merge base
+for `--changed`), `baseline` (entries, suppressed, stale), `policyChange`
+(classified edits to `.engintel` files), `now`, and `engineVersion`.
+
+### SARIF and Markdown
+
+`--format sarif` prints SARIF 2.1.0 for GitHub code scanning. Each result's
+partial fingerprint is its EngIntel identity, so an alert keeps its identity
+when lines move. `--format markdown` prints a summary table (at most 50 rows)
+for a GitHub job summary. Neither ever contains source text.
 
 Each entry in `diagnostics` has `ruleId`, `severity`, `blocking`, `file`,
 `range`, `message`, `why`, `edge` (`source`, `target`, `kind`) or
@@ -469,6 +508,9 @@ note. Applied exceptions are listed in the report.
 | `engintel.overlapping-layers` | A file matches two layers | error |
 | `engintel.intra-layer` | Files import each other in a layer with `intraAllowed: false` | error |
 | `engintel.unlayered` | A file is in no layer | `unlayered.severity`, default advisory |
+| `engintel.policy-weakening` | A change weakens `.engintel` policy without owners' approval ([section 11](#11-pull-requests---changed-and-policy-changes)) | error (warning when approved) |
+| `engintel.policy-change` | A change tightens `.engintel` policy | advisory |
+| `engintel.baseline-drop` | A change removes a baseline entry whose violation still exists | error |
 
 ## 8. Tool settings: `.engintel/config.json`
 
@@ -502,6 +544,10 @@ credentials are refused.
 To skip files without a config file, list them in `.engintel/ignore` using
 `.gitignore` syntax.
 
+Both files decide what gets checked, so they are policy too: in a pull
+request, excluding or ignoring more files is reported as a policy weakening
+([section 11](#11-pull-requests---changed-and-policy-changes)).
+
 Which files are analyzed: in a git repository, tracked files plus untracked
 files that `.gitignore` does not exclude. Otherwise, a directory walk that
 honors every `.gitignore`. `node_modules`, `.git`, and `.engintel/cache/` are
@@ -530,22 +576,104 @@ If a file is genuinely meant to be that way, such as a vendored binary with a
 Files on this list are still shown in the report (`allowlisted: true`), but
 they do not block.
 
-## 10. Running it in CI
+## 10. Existing debt: the baseline
 
-The GitHub Action arrives in Phase 2. Until then, any CI job can run the CLI.
-Exit code 1 or 2 fails the job:
+`.engintel/baseline.json` lists violations that already existed when you
+adopted EngIntel. A baselined violation is reported as "not counted" instead
+of failing; any violation not in the file fails. That makes the gate
+adoptable on a messy codebase without letting new debt in.
+
+Each entry is identified by a fingerprint of the rule, the importing file,
+the imported file, and (for cycles) the cycle. It survives reformatting and
+line moves, but a new import between different files is new debt.
+
+**Adopt:**
 
 ```sh
-# In a job with Node 22 and your project's dependencies installed
-git clone --depth 1 https://github.com/Arpitpatidar00/engintel.git "$RUNNER_TEMP/engintel"
-(cd "$RUNNER_TEMP/engintel" && corepack enable && pnpm install --frozen-lockfile && pnpm build)
-node "$RUNNER_TEMP/engintel/packages/cli/dist/bin.js" validate --root .
+engintel baseline write --written-by <your-github-login>          # dry run: what would be recorded
+engintel baseline write --written-by <your-github-login> --yes    # write .engintel/baseline.json
 ```
 
-Phase 1 always checks the whole repository. Checking only the files a pull
-request changed (`--changed`) arrives in Phase 2.
+Commit it in its own pull request. Owners review a sample of each rule; the
+command prints the counts per rule. Delete rules you do not really want
+instead of baselining them.
 
-## 11. Troubleshooting
+**Rules of the ledger:**
+
+- A human writes it: `--written-by` must be a GitHub login, and agent or bot
+  names are refused. In CI, writing is refused unless a manually triggered
+  workflow sets `ENGINTEL_ALLOW_BASELINE_WRITE=1`.
+- Files EngIntel cannot analyze, opaque or unresolved imports, and
+  overlapping layers can never be baselined. Fix them, or list genuinely
+  unreadable files under the contract's `unsupportedPaths`.
+- Only errors are recorded; warnings and advisories never block anyway.
+- Every entry is checked against its fields on every run. A hand-edited entry
+  fails closed (exit 2); `engintel baseline check` shows which one.
+- A full run lists entries whose violation is gone ("stale"). Remove them with
+  `engintel baseline prune --written-by <login> --yes`.
+
+## 11. Pull requests: `--changed` and policy changes
+
+```sh
+engintel validate --changed --base origin/main
+```
+
+`--changed` finds the merge base of your branch and `--base`, and checks
+everything that differs from it: committed, uncommitted, and untracked
+changes, deletions, and both sides of renames.
+
+- An import is checked when the importing file or the imported file changed.
+  Deleting a file checks the files that imported it.
+- Changing any member of an import cycle checks the whole cycle.
+- A change to `.engintel/architecture.json` re-checks everything.
+- Unreadable or unparseable files block only when they are part of the
+  change.
+- The baseline used is the one at the merge base. Adding your own new
+  violation to `baseline.json` in the same pull request does not hide it.
+
+**Policy changes.** Every file in `.engintel/` (the contract, `baseline.json`,
+`config.json`, `ignore`) is compared with its merge-base version, and each
+difference is classified:
+
+| Class | Examples | Effect |
+| --- | --- | --- |
+| weakening | Removing or disabling a rule, lowering its severity, editing what it covers, adding or extending an exception, allowlisting paths, `status` to `draft`, excluding files in `config.json` or `ignore`, adding baseline entries | Blocking `engintel.policy-weakening`, unless owners approved |
+| tightening | Adding a forbidden or acyclic rule, removing an exception, pruning fixed baseline entries | Advisory `engintel.policy-change` |
+| neutral | Comments, descriptions, versions, owners | Listed in the report only |
+
+When the effect of an edit cannot be proven harmless, it counts as a
+weakening. Owners approve a weakening with a pull request label, which CI
+turns into `--policy-change-approved` or `--baseline-change-approved`
+([section 12](#12-running-it-on-github)). Removing a baseline entry whose
+violation still exists always fails (`engintel.baseline-drop`), approved or
+not.
+
+## 12. Running it on GitHub
+
+Use the Action in `packages/action`. It runs `engintel validate --changed` on
+the pull request's own checkout, writes a job summary and a SARIF file, caches
+EngIntel's build and the graph, and fails the job with the CLI's exit code.
+
+```yaml
+- uses: actions/checkout@<sha>
+  with:
+    fetch-depth: 0
+- id: engintel
+  uses: Arpitpatidar00/engintel/packages/action@<commit sha>
+```
+
+The complete setup, including the workflow file, CODEOWNERS, a ruleset that
+requires the check and code-owner review, and the approval labels, is in
+[`packages/action/README.md`](../packages/action/README.md). A check that is
+not required by a ruleset is only a suggestion.
+
+Other CI systems can run the CLI directly. Exit code 1 or 2 fails the job:
+
+```sh
+node path/to/engintel/packages/cli/dist/bin.js validate --changed --base origin/main --format sarif > engintel.sarif
+```
+
+## 13. Troubleshooting
 
 | You see | What to do |
 | --- | --- |
@@ -561,6 +689,13 @@ request changed (`--changed`) arrives in Phase 2.
 | Files counted as `(unlayered)` | Run `engintel analyze` and adjust the layer globs |
 | `E_GRAPH_TIMEOUT` | Raise `limits.graphTimeoutMs`, or narrow `include` |
 | `E_REPO_TOO_LARGE` | Narrow `include`, or raise the limits |
+| `E_GIT_BAD_REF` | The base branch is not in this clone: `git fetch origin main`, or pass `--base` |
+| `E_GIT_NO_MERGE_BASE` | Shallow clone: check out with full history (`fetch-depth: 0`) |
+| `E_BASELINE_INVALID` | Run `engintel baseline check`; rewrite hand-edited entries with `engintel baseline write` |
+| `E_BASELINE_FORBIDDEN` | Fix unanalyzable files or opaque imports first; they cannot be baselined |
+| `E_BASELINE_WRITE_IN_CI` | Write the baseline locally, or from a manual workflow with `ENGINTEL_ALLOW_BASELINE_WRITE=1` |
+| `engintel.policy-weakening` on your pull request | Revert that part of `.engintel/`, or ask an architecture owner to review and add the label |
+| `engintel.baseline-drop` | Fix the violation before removing its entry, or restore the entry |
 
 Error codes always appear on stderr as `engintel: error E_...: message`, and in
 the JSON error report under `error.code`.
@@ -569,14 +704,12 @@ the JSON error report under `error.code`.
 
 | Feature | Phase |
 | --- | --- |
-| Baselines: accept existing violations and fail only new ones | 2 |
-| `--changed`: check only what a pull request changed | 2 |
-| GitHub Action, SARIF output, required-check setup | 2 |
-| Detecting pull requests that weaken the contract | 2 |
+| `engintel drift`: debt counts, rates, and age over time | later |
 | `engintel init` to draft a contract from your folders | later |
 | MCP server so AI coding agents can ask EngIntel before they write code | 3 |
 | Symbol search, repair loop, tsc/ESLint/test orchestration | 4 to 6 |
 | Enforcing `naming` rules | later |
 
-For how the Phase 1 behaviour was decided, see `docs/phase-1-decisions.md`.
+For how the behaviour was decided, see `docs/phase-1-decisions.md` and
+`docs/phase-2-decisions.md`.
 To test EngIntel itself, see `docs/testing.md`.
