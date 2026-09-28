@@ -28,3 +28,17 @@ export {
 } from "./cruise.js";
 
 export { canonicalRotation, cycleSignature, cyclicComponents, findCycles, type Cycle, type CycleOptions } from "./cycles.js";
+
+export {
+  GRAPH_CACHE_FORMAT,
+  cacheFromGraph,
+  graphCacheKey,
+  mergeGraph,
+  parseGraphCache,
+  planReuse,
+  toolVersions,
+  type CacheKeyParts,
+  type CachedFile,
+  type GraphCache,
+  type ReusePlan,
+} from "./incremental.js";

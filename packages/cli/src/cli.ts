@@ -80,6 +80,8 @@ export async function main(argv: readonly string[], io: CliIO): Promise<number> 
       readonly base?: string;
       readonly policyChangeApproved?: boolean;
       readonly baselineChangeApproved?: boolean;
+      readonly cache?: boolean;
+      readonly verbose?: boolean;
     },
   ) => {
     try {
@@ -89,6 +91,8 @@ export async function main(argv: readonly string[], io: CliIO): Promise<number> 
         now: options.now ?? io.today(),
         ...(changedSince === undefined ? {} : { changedSince }),
         approvals: { policyChange: options.policyChangeApproved ?? false, baselineChange: options.baselineChangeApproved ?? false },
+        graphCache: options.cache ?? true,
+        ...(options.verbose ? { log: (line: string) => io.stderr.write(`engintel: ${line}\n`) } : {}),
       });
       io.stdout.write(render(report, options.format, style));
       notices(report.notices);
@@ -115,6 +119,8 @@ export async function main(argv: readonly string[], io: CliIO): Promise<number> 
       .option("--base <ref>", "git ref to diff against (implies --changed); default origin/$GITHUB_BASE_REF, else origin/HEAD")
       .option("--policy-change-approved", "architecture owners approved weakening .engintel policy in this change (set by CI from a label)")
       .option("--baseline-change-approved", "architecture owners approved growing the baseline in this change (set by CI from a label)")
+      .option("--no-cache", "do not reuse or update .engintel/cache/graph-cache.json")
+      .option("--verbose", "log cache statistics to stderr")
       .action(validate);
 
   addValidate(program.command("validate"));
@@ -125,7 +131,7 @@ export async function main(argv: readonly string[], io: CliIO): Promise<number> 
     .description("build the module graph and summarize the repository; enforces nothing")
     .option("--root <dir>", "repository root", ".")
     .addOption(formatOption())
-    .option("--no-cache", "do not write .engintel/cache/ (graph.json, symbols.json)")
+    .option("--no-cache", "do not use or write .engintel/cache/")
     .action(async (options: CommonOptions & { readonly cache: boolean }) => {
       try {
         const report = await analyzeRepository({ root: resolve(io.cwd, options.root), writeCache: options.cache });

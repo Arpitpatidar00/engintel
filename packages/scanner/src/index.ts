@@ -18,6 +18,7 @@ export {
 export {
   GitError,
   changedFilesSince,
+  git,
   isGitWorkTree,
   mergeBase,
   resolveCommit,

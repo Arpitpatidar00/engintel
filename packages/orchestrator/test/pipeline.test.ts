@@ -115,11 +115,15 @@ describe("validateRepository: full scope", () => {
     expect((await validateRepository({ root, now })).outcome).toBe("pass");
   });
 
-  test("validate writes nothing", async () => {
+  test("validate writes only its graph cache, and nothing at all without it", async () => {
     const root = copyOf("invalid-layer");
     const before = snapshotTree(root);
-    await validateRepository({ root, now });
+    await validateRepository({ root, now, graphCache: false });
     expect(snapshotTree(root)).toEqual(before);
+    await validateRepository({ root, now });
+    const after = snapshotTree(root);
+    expect(Object.keys(after).filter((p) => !(p in before))).toEqual([".engintel/cache/graph-cache.json"]);
+    expect(Object.keys(before).every((p) => after[p] === before[p])).toBe(true);
   });
 });
 
@@ -145,7 +149,7 @@ describe("analyzeRepository", () => {
     });
     expect(r.symbols).toEqual({ file: SYMBOLS_CACHE_PATH, exported: 7, projects: [{ configFile: "tsconfig.json", files: 6 }] });
     const after = snapshotTree(root);
-    expect(Object.keys(after).filter((p) => !(p in before)).sort()).toEqual([GRAPH_CACHE_PATH, SYMBOLS_CACHE_PATH]);
+    expect(Object.keys(after).filter((p) => !(p in before)).sort()).toEqual([GRAPH_CACHE_PATH, ".engintel/cache/graph-cache.json", SYMBOLS_CACHE_PATH].sort());
     const cached = JSON.parse(readFileSync(join(root, SYMBOLS_CACHE_PATH), "utf8")) as { symbols: { file: string; name: string; kind: string }[] };
     expect(cached.symbols.find((s) => s.name === "OrderService")).toMatchObject({ file: "src/services/order.service.ts", kind: "class" });
     const graph = JSON.parse(readFileSync(join(root, GRAPH_CACHE_PATH), "utf8")) as { edges: { from: string; to: string }[] };

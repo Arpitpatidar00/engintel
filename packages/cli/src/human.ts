@@ -94,6 +94,7 @@ export function formatAnalysis(report: AnalysisReport, style: Style): string {
     `Graph: ${plural(g.modules, "module")}, ${plural(g.edges, "dependency", "dependencies")}, ${g.external} external, ${g.core} core, ${g.unresolved} unresolved, ${plural(g.cycles, "cycle")}`,
   ];
   out.push(`Symbols: ${plural(report.symbols.exported, "exported symbol")} from ${plural(report.symbols.projects.length, "TypeScript project")}`);
+  out.push(`Graph cache: ${g.cache.status} (${g.cache.reused} files reused, ${g.cache.cruised} analyzed)`);
   const cached = [g.file, report.symbols.file].filter((f): f is string => f !== null);
   if (cached.length > 0) out.push(`Cached: ${cached.join(", ")}`);
   if (report.contract) {

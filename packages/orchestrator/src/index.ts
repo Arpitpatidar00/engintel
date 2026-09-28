@@ -26,3 +26,4 @@ export {
   type ValidationReport,
 } from "./report.js";
 export { buildBaseline, inspectBaseline, writeBaseline, type BaselineSummary, type BaselineWriteOptions, type BaselineWriteResult } from "./baseline-write.js";
+export { GRAPH_CACHE_FILE, cacheIsCommitted, type GraphCacheInfo } from "./graph-cache.js";

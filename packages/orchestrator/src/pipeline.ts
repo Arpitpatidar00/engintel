@@ -4,11 +4,12 @@
 import { lstatSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { BASELINE_PATH, CONFIG_PATH, CONTRACT_PATH, RepoPathError, loadConfig, loadContract, normalizeRepoPath, type LoadedConfig, type LoadedContract } from "@engintel/config";
-import { buildModuleGraph, findCycles, serializeGraph, type CruiseFn, type ModuleGraph } from "@engintel/graph";
+import { findCycles, serializeGraph, type CruiseFn, type ModuleGraph } from "@engintel/graph";
 import { IDENTITY_VERSION, LayerIndex, evaluate, withDiagnostics, type FileFacts, type Scope, type SourceFileState } from "@engintel/policy";
 import { changedFilesSince, mergeBase, resolveCommit, scanRepository, showFileAt, type ScanResult, type ScannedFile } from "@engintel/scanner";
 import { extractSymbols, parseSourceFiles, type ParsedFile } from "@engintel/symbols";
 import { applyBaselineContext, loadBaselineContext } from "./baseline.js";
+import { GRAPH_CACHE_FILE, buildGraphWithCache, type GraphCacheInfo } from "./graph-cache.js";
 import { IGNORE_PATH, detectPolicyChanges, type PolicyBase } from "./policy-change.js";
 import { ToolError, toToolError } from "./errors.js";
 import { REPORT_SCHEMA_VERSION, type AnalysisReport, type ContractSummary, type ValidationReport } from "./report.js";
@@ -32,6 +33,10 @@ export interface PipelineOptions {
   readonly cruiseImpl?: CruiseFn;
   /** Force a listing strategy (tests). Default "auto". */
   readonly listing?: "auto" | "git" | "walk";
+  /** Reuse and update .engintel/cache/graph-cache.json. Default true. */
+  readonly graphCache?: boolean;
+  /** Diagnostic log lines (cache statistics). Never part of a report. */
+  readonly log?: (line: string) => void;
 }
 
 export interface ValidateOptions extends PipelineOptions {
@@ -70,6 +75,7 @@ export interface Analysis {
   readonly graph: ModuleGraph;
   readonly files: SourceFileState[];
   readonly facts: Map<string, FileFacts>;
+  readonly graphCache: GraphCacheInfo;
 }
 
 const DETAIL: Record<string, (file: ScannedFile, config: LoadedConfig) => string> = {
@@ -119,13 +125,20 @@ export async function analyzeTree(options: PipelineOptions): Promise<Analysis> {
   const byPath = new Map(parsed.map((p) => [p.path, p]));
   const analyzable = parsed.filter((p) => p.syntaxErrors.length === 0);
 
-  const graph = await buildModuleGraph({
+  const { graph, cache: graphCache } = await buildGraphWithCache({
     root,
-    files: analyzable.map((p) => p.path),
-    ...(tsconfig ? { tsconfig } : {}),
-    timeoutMs: limits.graphTimeoutMs,
-    ...(options.cruiseImpl ? { cruiseImpl: options.cruiseImpl } : {}),
+    scan,
+    analyzed: analyzable.map((p) => p.path),
+    engineVersion: ENGINE_VERSION,
+    useCache: options.graphCache ?? true,
+    graph: {
+      ...(tsconfig ? { tsconfig } : {}),
+      timeoutMs: limits.graphTimeoutMs,
+      ...(options.cruiseImpl ? { cruiseImpl: options.cruiseImpl } : {}),
+    },
+    writeCache: (content) => writeInsideEngintel(root, GRAPH_CACHE_FILE, content),
   });
+  options.log?.(`graph cache: ${graphCache.status} (${graphCache.reused} files reused, ${graphCache.cruised} analyzed)`);
 
   const files: SourceFileState[] = sources
     .filter((f) => f.status === "ok" || f.status === "unreadable")
@@ -140,7 +153,7 @@ export async function analyzeTree(options: PipelineOptions): Promise<Analysis> {
         : { path: f.path, unanalyzable: null };
     });
   const facts = new Map<string, FileFacts>(analyzable.map((p) => [p.path, { imports: p.imports, exports: p.exports }]));
-  return { config, scan, graph, files, facts };
+  return { config, scan, graph, files, facts, graphCache };
 }
 
 /** Canonical form of a changed path; an unportable path keeps its POSIX spelling, as the scanner reports it. */
@@ -262,7 +275,7 @@ export async function analyzeRepository(options: AnalyzeOptions): Promise<Analys
     } catch (error) {
       if (!(error instanceof Error && "code" in error && error.code === "E_CONTRACT_MISSING")) throw error;
     }
-    const { config, scan, graph, files } = await analyzeTree(options);
+    const { config, scan, graph, files, graphCache } = await analyzeTree({ ...options, graphCache: options.graphCache ?? options.writeCache ?? true });
     const analyzable = files.filter((f) => f.unanalyzable === null).map((f) => f.path);
     const tsconfig = config.config.tsconfig;
     const symbols = extractSymbols(root, analyzable, tsconfig ? { tsconfig } : {});
@@ -302,6 +315,7 @@ export async function analyzeRepository(options: AnalyzeOptions): Promise<Analys
         unresolved: count("unresolved"),
         edges: graph.edges.length,
         cycles: findCycles(graph).length,
+        cache: graphCache,
       },
       symbols: {
         file: writeCache ? SYMBOLS_CACHE_PATH : null,

@@ -80,6 +80,8 @@ export interface AnalysisReport {
     readonly unresolved: number;
     readonly edges: number;
     readonly cycles: number;
+    /** Incremental reuse of .engintel/cache/graph-cache.json (ENG-037). */
+    readonly cache: { readonly status: "hit" | "partial" | "miss" | "off" | "refused"; readonly reused: number; readonly cruised: number };
   };
   /** Exported symbols from the TypeScript checker (ENG-029); configFile null is the default project. */
   readonly symbols: {
