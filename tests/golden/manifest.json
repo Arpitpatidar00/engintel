@@ -1,5 +1,5 @@
 {
-  "fixtureVersion": "0.1.0",
+  "fixtureVersion": "0.2.0",
   "treeHash": {
     "algorithm": "sha256",
     "definition": "sha256 of the lines \"<posix path>\\0<sha256 of raw bytes>\", sorted by path and joined by \"\\n\", for every regular file under the fixture directory except expected.json at its root"
@@ -18,7 +18,7 @@
       "treeHash": "2d7d75c14fbd162d70c3aede3059c453b225826df297c8794323494e277be55d"
     },
     "existing-violations": {
-      "treeHash": "8aa42cd0f586c6f3740ebb107d6f51511c083e716f6bfa474bf99a455e67eea5"
+      "treeHash": "83107c9a07ed379679f39b37765d939dfca3de6d9c265f71c54912caff5a81c5"
     },
     "exceptions": {
       "treeHash": "9fbdf18632deabaf39d615c4a4b398ab9b9009e8df89c4009fea28a9707db36e"

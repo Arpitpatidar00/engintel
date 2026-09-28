@@ -21,6 +21,7 @@ export {
   type ExceptionApplication,
   type ExportedSymbol,
   type FileFacts,
+  type Finding,
   type ImportSite,
   type Scope,
   type SourceFileState,
@@ -51,3 +52,12 @@ export {
 
 export { LayerIndex, describeRef, globMatcher, matchesAnyGlob, refLayers } from "./layers.js";
 export { LayerGraph, allowedTargets } from "./routes.js";
+
+export {
+  BASELINE_FORBIDDEN_RULES,
+  applyBaseline,
+  baselineCandidates,
+  checkBaselineIntegrity,
+  isBaselineEligible,
+  type BaselineIntegrityIssue,
+} from "./baseline.js";

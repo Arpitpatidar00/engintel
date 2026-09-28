@@ -26,7 +26,8 @@ export type ConfigErrorCode =
   | "E_CONTRACT_DRAFT"
   | "E_CONFIG_INVALID"
   | "E_CONFIG_UNREADABLE"
-  | "E_CONFIG_INVALID_JSON";
+  | "E_CONFIG_INVALID_JSON"
+  | "E_BASELINE_INVALID";
 
 export interface ConfigIssue {
   /** Dotted path into the document, e.g. "rules[2].from.layer"; "" for the whole file. */

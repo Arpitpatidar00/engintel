@@ -24,6 +24,9 @@ export const BUILTIN_RULES = {
   unlayered: "engintel.unlayered",
   overlappingLayers: "engintel.overlapping-layers",
   intraLayer: "engintel.intra-layer",
+  policyWeakening: "engintel.policy-weakening",
+  policyChange: "engintel.policy-change",
+  baselineDrop: "engintel.baseline-drop",
 } as const;
 
 export interface Position {

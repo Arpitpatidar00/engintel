@@ -58,6 +58,12 @@ export function formatValidation(report: ValidationReport, style: Style): string
     `Contract: ${report.contract.file} (policy ${report.contract.policyVersion}, ${report.contract.status})`,
     `Scope: ${scope}; ${plural(report.stats.filesInScope, "file")} and ${plural(report.stats.edgesEvaluated, "dependency", "dependencies")} checked`,
   ];
+  if (report.baseline) {
+    const where = report.baseline.comparedWith === "merge-base" ? "as of the merge base" : "working copy";
+    out.push(
+      `Baseline: ${plural(report.baseline.entries, "entry", "entries")} (${where}); ${plural(report.baseline.suppressed, "existing violation")} not counted`,
+    );
+  }
   // Blocking findings first, then the rest, each in report order.
   const ordered = [...report.diagnostics.filter((d) => d.blocking), ...report.diagnostics.filter((d) => !d.blocking)];
   for (const d of ordered) out.push("", ...formatDiagnostic(d, style));

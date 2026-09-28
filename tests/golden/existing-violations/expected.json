@@ -1,1 +1,194 @@
-{}
+{
+  "new-violation": {
+    "schemaVersion": 1,
+    "command": "validate",
+    "identityVersion": 1,
+    "outcome": "fail",
+    "exitCode": 1,
+    "now": "2026-09-01",
+    "scope": {
+      "mode": "changed",
+      "changedFiles": [
+        "src/controllers/refund.controller.ts"
+      ],
+      "contractChanged": false
+    },
+    "git": null,
+    "contract": {
+      "file": ".engintel/architecture.json",
+      "status": "active",
+      "policyVersion": "1.0.0",
+      "contractHash": "a655ef61e7512ab409f17efc0699d1cb44d9d4c4d150e69876e68992b083ba47"
+    },
+    "repository": {
+      "treeHash": "9d871b53376737ef96d8f5eb3fa8a8c5e0abe926c30f65809abc1287249471f8"
+    },
+    "counts": {
+      "errors": 1,
+      "warnings": 0,
+      "advisories": 0,
+      "suppressedByException": 0,
+      "suppressedByBaseline": 0,
+      "unanalyzable": 0
+    },
+    "baseline": {
+      "file": ".engintel/baseline.json",
+      "comparedWith": "working-copy",
+      "entries": 3,
+      "suppressed": 0,
+      "stale": null
+    },
+    "diagnostics": [
+      {
+        "schemaVersion": 1,
+        "identity": "ba7ad99bda7f9097d905d9521c63e5600290e7d39af4bf9610467e81fbe7564b",
+        "adapter": "architecture",
+        "ruleId": "no-controller-to-repository",
+        "severity": "error",
+        "blocking": true,
+        "file": "src/controllers/refund.controller.ts",
+        "range": {
+          "start": {
+            "line": 1,
+            "column": 1
+          },
+          "end": {
+            "line": 1,
+            "column": 1
+          }
+        },
+        "message": "Forbidden dependency from layer 'controllers' to layer 'repositories': src/controllers/refund.controller.ts imports src/repositories/order.repository.ts.",
+        "why": "Layer 'controllers' is not allowed to depend on layer 'repositories' under rule 'no-controller-to-repository'. Do not skip the service layer. Inject a service and call it.",
+        "edge": {
+          "source": "src/controllers/refund.controller.ts",
+          "target": "src/repositories/order.repository.ts",
+          "kind": "import"
+        },
+        "suggest": {
+          "kind": "use-layer",
+          "explanation": "Depend on layer 'services' instead, following the legal route controllers -> services -> repositories. For example, use OrderService (class) from src/services/order.service.ts.",
+          "layers": [
+            "controllers",
+            "services",
+            "repositories"
+          ]
+        }
+      }
+    ],
+    "exceptionsApplied": [],
+    "unanalyzable": [],
+    "stats": {
+      "files": 8,
+      "filesInScope": 1,
+      "edges": 9,
+      "edgesEvaluated": 1
+    },
+    "notices": [
+      "Compared with the working copy of .engintel/baseline.json. With --changed, CI compares with the baseline at the merge base."
+    ]
+  },
+  "touch-legacy-file": {
+    "schemaVersion": 1,
+    "command": "validate",
+    "identityVersion": 1,
+    "outcome": "pass",
+    "exitCode": 0,
+    "now": "2026-09-01",
+    "scope": {
+      "mode": "changed",
+      "changedFiles": [
+        "src/controllers/legacy-billing.controller.ts"
+      ],
+      "contractChanged": false
+    },
+    "git": null,
+    "contract": {
+      "file": ".engintel/architecture.json",
+      "status": "active",
+      "policyVersion": "1.0.0",
+      "contractHash": "a655ef61e7512ab409f17efc0699d1cb44d9d4c4d150e69876e68992b083ba47"
+    },
+    "repository": {
+      "treeHash": "1ebb83263f187274391bce7c2b31d8c179db3bb0f61592de7183acaf7652f189"
+    },
+    "counts": {
+      "errors": 0,
+      "warnings": 0,
+      "advisories": 0,
+      "suppressedByException": 0,
+      "suppressedByBaseline": 1,
+      "unanalyzable": 0
+    },
+    "baseline": {
+      "file": ".engintel/baseline.json",
+      "comparedWith": "working-copy",
+      "entries": 3,
+      "suppressed": 1,
+      "stale": null
+    },
+    "diagnostics": [],
+    "exceptionsApplied": [],
+    "unanalyzable": [],
+    "stats": {
+      "files": 7,
+      "filesInScope": 1,
+      "edges": 8,
+      "edgesEvaluated": 1
+    },
+    "notices": [
+      "Compared with the working copy of .engintel/baseline.json. With --changed, CI compares with the baseline at the merge base."
+    ]
+  },
+  "unrelated-change": {
+    "schemaVersion": 1,
+    "command": "validate",
+    "identityVersion": 1,
+    "outcome": "pass",
+    "exitCode": 0,
+    "now": "2026-09-01",
+    "scope": {
+      "mode": "changed",
+      "changedFiles": [
+        "src/domain/order.ts"
+      ],
+      "contractChanged": false
+    },
+    "git": null,
+    "contract": {
+      "file": ".engintel/architecture.json",
+      "status": "active",
+      "policyVersion": "1.0.0",
+      "contractHash": "a655ef61e7512ab409f17efc0699d1cb44d9d4c4d150e69876e68992b083ba47"
+    },
+    "repository": {
+      "treeHash": "1ebb83263f187274391bce7c2b31d8c179db3bb0f61592de7183acaf7652f189"
+    },
+    "counts": {
+      "errors": 0,
+      "warnings": 0,
+      "advisories": 0,
+      "suppressedByException": 0,
+      "suppressedByBaseline": 0,
+      "unanalyzable": 0
+    },
+    "baseline": {
+      "file": ".engintel/baseline.json",
+      "comparedWith": "working-copy",
+      "entries": 3,
+      "suppressed": 0,
+      "stale": null
+    },
+    "diagnostics": [],
+    "exceptionsApplied": [],
+    "unanalyzable": [],
+    "stats": {
+      "files": 7,
+      "filesInScope": 1,
+      "edges": 8,
+      "edgesEvaluated": 3
+    },
+    "notices": [
+      "Compared with the working copy of .engintel/baseline.json. With --changed, CI compares with the baseline at the merge base."
+    ]
+  }
+}

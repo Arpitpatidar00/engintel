@@ -28,8 +28,10 @@
       "warnings": 0,
       "advisories": 0,
       "suppressedByException": 0,
+      "suppressedByBaseline": 0,
       "unanalyzable": 0
     },
+    "baseline": null,
     "diagnostics": [
       {
         "schemaVersion": 1,

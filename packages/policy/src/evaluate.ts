@@ -23,6 +23,7 @@ import {
   type Suggestion,
   type Violation,
 } from "./diagnostics.js";
+import { normalizeCycleSignature, normalizeIdentityNode } from "./identity.js";
 import { LayerIndex, describeRef, globMatcher, refLayers } from "./layers.js";
 import { LayerGraph, allowedTargets } from "./routes.js";
 
@@ -102,6 +103,8 @@ export interface EvaluationResult {
     readonly warnings: number;
     readonly advisories: number;
     readonly suppressedByException: number;
+    /** Blocking findings whose identity is in the baseline (0 until applyBaseline). */
+    readonly suppressedByBaseline: number;
     readonly unanalyzable: number;
   };
   /** Sorted by file, position, rule, identity. */
@@ -109,6 +112,21 @@ export interface EvaluationResult {
   readonly exceptionsApplied: readonly ExceptionApplication[];
   readonly unanalyzable: readonly UnanalyzableEntry[];
   readonly stats: { readonly files: number; readonly filesInScope: number; readonly edges: number; readonly edgesEvaluated: number };
+  /**
+   * What each diagnostic's identity was computed from (normalized), sorted by
+   * identity. Internal: baseline entries are written from it. Not part of the report.
+   */
+  readonly findings: readonly Finding[];
+}
+
+export interface Finding {
+  readonly identity: string;
+  readonly ruleId: string;
+  readonly source: string;
+  readonly target: string;
+  readonly cycleSignature: string | null;
+  readonly severity: Diagnostic["severity"];
+  readonly blocking: boolean;
 }
 
 const compare = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
@@ -358,9 +376,20 @@ export function evaluate(input: EvaluationInput): EvaluationResult {
   }
 
   const unique = new Map<string, Diagnostic>();
+  const findings = new Map<string, Finding>();
   for (const v of violations) {
     const d = toDiagnostic(v);
     unique.set(JSON.stringify(d), d);
+    const signature = normalizeCycleSignature(v.cycleSignature);
+    findings.set(d.identity, {
+      identity: d.identity,
+      ruleId: v.ruleId,
+      source: normalizeIdentityNode(v.source),
+      target: normalizeIdentityNode(v.target),
+      cycleSignature: signature === "" ? null : signature,
+      severity: d.severity,
+      blocking: d.blocking,
+    });
   }
   const diagnostics = [...unique.values()].sort(compareDiagnostics);
   const count = (severity: Diagnostic["severity"]) => diagnostics.filter((d) => d.severity === severity).length;
@@ -372,6 +401,7 @@ export function evaluate(input: EvaluationInput): EvaluationResult {
       warnings: count("warning"),
       advisories: count("advisory"),
       suppressedByException: exceptionsApplied.length,
+      suppressedByBaseline: 0,
       unanalyzable: unanalyzable.filter((u) => u.inScope && !u.allowlisted).length,
     },
     diagnostics,
@@ -380,6 +410,7 @@ export function evaluate(input: EvaluationInput): EvaluationResult {
     ),
     unanalyzable,
     stats: { files: files.length, filesInScope: files.filter((f) => fileInScope(f.path)).length, edges: graph.edges.length, edgesEvaluated },
+    findings: [...findings.values()].sort((a, b) => compare(a.identity, b.identity)),
   };
 }
 

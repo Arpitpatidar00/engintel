@@ -3,11 +3,12 @@
 
 import { lstatSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { CONTRACT_PATH, RepoPathError, loadConfig, loadContract, normalizeRepoPath, type LoadedConfig, type LoadedContract } from "@engintel/config";
+import { BASELINE_PATH, CONTRACT_PATH, RepoPathError, loadConfig, loadContract, normalizeRepoPath, type LoadedConfig, type LoadedContract } from "@engintel/config";
 import { buildModuleGraph, findCycles, serializeGraph, type CruiseFn, type ModuleGraph } from "@engintel/graph";
 import { IDENTITY_VERSION, LayerIndex, evaluate, type FileFacts, type Scope, type SourceFileState } from "@engintel/policy";
-import { changedFilesSince, mergeBase, resolveCommit, scanRepository, type ScanResult, type ScannedFile } from "@engintel/scanner";
+import { changedFilesSince, mergeBase, resolveCommit, scanRepository, showFileAt, type ScanResult, type ScannedFile } from "@engintel/scanner";
 import { extractSymbols, parseSourceFiles, type ParsedFile } from "@engintel/symbols";
+import { applyBaselineContext, loadBaselineContext } from "./baseline.js";
 import { ToolError, toToolError } from "./errors.js";
 import { REPORT_SCHEMA_VERSION, type AnalysisReport, type ContractSummary, type ValidationReport } from "./report.js";
 
@@ -47,6 +48,14 @@ export interface ValidateOptions extends PipelineOptions {
    * and tooling only: the CLI never sets it, so a draft is never enforced.
    */
   readonly allowDraft?: boolean;
+  /**
+   * The policy files as they were at the merge base (raw text, null when
+   * absent). Filled from git for `changedSince`; tests and scenarios pass it
+   * directly. Its presence switches baseline comparison to merge-base rules.
+   */
+  readonly base?: { readonly contract: string | null; readonly baseline: string | null };
+  /** Owners approved this change (the Action maps pull request labels to these). */
+  readonly approvals?: { readonly policyChange?: boolean; readonly baselineChange?: boolean };
 }
 
 export interface AnalyzeOptions extends PipelineOptions {
@@ -54,7 +63,7 @@ export interface AnalyzeOptions extends PipelineOptions {
   readonly writeCache?: boolean;
 }
 
-interface Analysis {
+export interface Analysis {
   readonly config: LoadedConfig;
   readonly scan: ScanResult;
   readonly graph: ModuleGraph;
@@ -84,7 +93,7 @@ function summarize(loaded: LoadedContract): ContractSummary {
   return { file: loaded.file, status: loaded.contract.status, policyVersion: loaded.contract.policyVersion, contractHash: loaded.contractHash };
 }
 
-async function analyze(options: PipelineOptions): Promise<Analysis> {
+export async function analyzeTree(options: PipelineOptions): Promise<Analysis> {
   const root = resolve(options.root);
   const config = loadConfig(root);
   const { include, exclude, tsconfig, limits } = config.config;
@@ -184,8 +193,26 @@ export async function validateRepository(options: ValidateOptions): Promise<Vali
         { file: loaded.file },
       );
     }
-    const { config, scan, graph, files, facts } = await analyze(options);
-    const result = evaluate({ contract: loaded.contract, graph, files, facts, scope, now: options.now });
+    if (options.base && fromGit) throw new ToolError("E_USAGE", "base is read from git when changedSince is set");
+    const base =
+      options.base ??
+      (fromGit
+        ? { contract: showFileAt(root, fromGit.git.mergeBase, CONTRACT_PATH), baseline: showFileAt(root, fromGit.git.mergeBase, BASELINE_PATH) }
+        : undefined);
+    const baselineContext = loadBaselineContext(root, base, fromGit ? showFileAt(root, fromGit.git.baseCommit, BASELINE_PATH) : undefined);
+    const { config, scan, graph, files, facts } = await analyzeTree(options);
+    const evaluated = evaluate({ contract: loaded.contract, graph, files, facts, scope, now: options.now });
+    const { result, section } = applyBaselineContext(evaluated, baselineContext, {
+      scope,
+      baselineChangeApproved: options.approvals?.baselineChange ?? false,
+    });
+    const baselineNotices =
+      section?.comparedWith === "working-copy"
+        ? [`Compared with the working copy of ${section.file}. With --changed, CI compares with the baseline at the merge base.`]
+        : [];
+    if (section?.stale && section.stale.length > 0) {
+      baselineNotices.push(`${section.stale.length} baseline ${section.stale.length === 1 ? "entry no longer occurs" : "entries no longer occur"}; a human can remove them with engintel baseline prune.`);
+    }
     return {
       schemaVersion: REPORT_SCHEMA_VERSION,
       command: "validate",
@@ -199,11 +226,12 @@ export async function validateRepository(options: ValidateOptions): Promise<Vali
       contract: summarize(loaded),
       repository: { treeHash: scan.treeHash },
       counts: result.counts,
+      baseline: section,
       diagnostics: result.diagnostics,
       exceptionsApplied: result.exceptionsApplied,
       unanalyzable: result.unanalyzable,
       stats: result.stats,
-      notices: [...config.notices, ...loaded.warnings.map((w) => `${loaded.file} ${w.path}: ${w.message}`)],
+      notices: [...config.notices, ...loaded.warnings.map((w) => `${loaded.file} ${w.path}: ${w.message}`), ...baselineNotices],
     };
   } catch (error) {
     throw toToolError(error);
@@ -220,7 +248,7 @@ export async function analyzeRepository(options: AnalyzeOptions): Promise<Analys
     } catch (error) {
       if (!(error instanceof Error && "code" in error && error.code === "E_CONTRACT_MISSING")) throw error;
     }
-    const { config, scan, graph, files } = await analyze(options);
+    const { config, scan, graph, files } = await analyzeTree(options);
     const analyzable = files.filter((f) => f.unanalyzable === null).map((f) => f.path);
     const tsconfig = config.config.tsconfig;
     const symbols = extractSymbols(root, analyzable, tsconfig ? { tsconfig } : {});

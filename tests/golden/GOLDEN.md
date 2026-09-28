@@ -4,11 +4,10 @@ Nine small repositories that pin down what EngIntel must do. Phase 1 and 2
 tickets are done when these fixtures produce the outcomes below, and not before
 (research doc 01, section 7).
 
-**Phase 1 status:** the inputs are final for `fixtureVersion` 0.1.0.
-`expected.json` is filled for `valid-architecture`, `circular`,
-`invalid-layer`, `unresolved`, `exceptions`, `prompt-injection`, and
-`unreadable-files`. `existing-violations` and `policy-change` stay `{}` until
-baselines (ENG-009) and policy-change detection (ENG-012) land in Phase 2.
+**Status:** the inputs are final for `fixtureVersion` 0.2.0 (0.2.0 added
+`existing-violations/repo/.engintel/baseline.json`). Every `expected.json` is
+filled except `policy-change`, which waits for policy-change detection
+(ENG-012).
 
 ## Layout
 
@@ -124,9 +123,8 @@ doc 08, BD-4, BD-5):
 2. `invoice.repository.ts -> order.service.ts` (`no-repository-upward`)
 3. `money.ts -> order.service.ts` (`no-upward-from-domain`, type-only)
 
-There is no `baseline.json` yet. ENG-009 creates it from `repo/` with
-`engintel baseline create` once the identity function is fixed, and bumps
-`fixtureVersion`.
+`repo/.engintel/baseline.json` records exactly those three identities. It was
+written by ENG-009 (`engintel baseline write`) at `fixtureVersion` 0.2.0.
 
 | Scenario | Expected |
 | --- | --- |

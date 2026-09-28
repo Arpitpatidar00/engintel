@@ -28,8 +28,10 @@
       "warnings": 0,
       "advisories": 0,
       "suppressedByException": 0,
+      "suppressedByBaseline": 0,
       "unanalyzable": 0
     },
+    "baseline": null,
     "diagnostics": [],
     "exceptionsApplied": [],
     "unanalyzable": [
@@ -90,8 +92,10 @@
       "warnings": 0,
       "advisories": 0,
       "suppressedByException": 0,
+      "suppressedByBaseline": 0,
       "unanalyzable": 2
     },
+    "baseline": null,
     "diagnostics": [
       {
         "schemaVersion": 1,
@@ -182,8 +186,10 @@
       "warnings": 0,
       "advisories": 0,
       "suppressedByException": 0,
+      "suppressedByBaseline": 0,
       "unanalyzable": 0
     },
+    "baseline": null,
     "diagnostics": [],
     "exceptionsApplied": [],
     "unanalyzable": [

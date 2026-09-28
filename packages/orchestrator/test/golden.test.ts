@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright 2026 The EngIntel Authors
 
-import { writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { DiagnosticSchema } from "@engintel/config";
 import { loadGoldens, materializeScenario, type GoldenFixture } from "@engintel/testkit";
@@ -26,22 +26,32 @@ const OUTCOMES: Record<string, Record<string, "pass" | "fail">> = {
   exceptions: { "after-expiry": "fail", "before-expiry": "pass" },
   "prompt-injection": { "injected-comments": "fail" },
   "unreadable-files": { "changed-unanalyzable": "fail", "unchanged-unanalyzable": "pass", "allowlisted-change": "pass" },
+  "existing-violations": { "unrelated-change": "pass", "touch-legacy-file": "pass", "new-violation": "fail" },
 };
-/** Baselines and policy-change detection arrive in Phase 2 (ENG-009, ENG-012). */
-const LATER = ["existing-violations", "policy-change"];
+/** Policy-change detection arrives with ENG-012. */
+const LATER = ["policy-change"];
 
 const UPDATE = process.env["ENGINTEL_UPDATE_EXPECTED"] === "1";
 const goldens = loadGoldens();
 const fixture = (id: string) => goldens.find((g) => g.id === id) as GoldenFixture;
 
+/** A scenario's base/ holds the merge-base versions of the policy files. */
+function baseOf(baseDir: string | null): { contract: string | null; baseline: string | null } | undefined {
+  if (!baseDir) return undefined;
+  const read = (rel: string) => (existsSync(join(baseDir, rel)) ? readFileSync(join(baseDir, rel), "utf8") : null);
+  return { contract: read(".engintel/architecture.json"), baseline: read(".engintel/baseline.json") };
+}
+
 async function runScenario(g: GoldenFixture, name: string): Promise<ValidationReport> {
   const m = materializeScenario(g, name);
   try {
     const s = m.scenario;
+    const base = baseOf(m.baseDir);
     return await validateRepository({
       root: m.dir,
       now: s.now,
       scope: s.mode === "full" ? { mode: "full" } : { mode: "changed", changedFiles: s.changedFiles, contractChanged: s.contractChanged },
+      ...(base ? { base } : {}),
     });
   } finally {
     m.cleanup();
@@ -156,6 +166,19 @@ describe("golden behaviour (GOLDEN.md)", () => {
       inScope: true,
       allowlisted: true,
     });
+  });
+
+  test("existing-violations: legacy debt is baselined; only a new identity fails", async () => {
+    const unrelated = await reportFor("existing-violations", "unrelated-change");
+    expect(unrelated.baseline).toEqual({ file: ".engintel/baseline.json", comparedWith: "working-copy", entries: 3, suppressed: 0, stale: null });
+    const touched = await reportFor("existing-violations", "touch-legacy-file");
+    expect(touched.diagnostics).toEqual([]);
+    expect(touched.counts.suppressedByBaseline).toBe(1);
+    const fresh = await reportFor("existing-violations", "new-violation");
+    expect(fresh.diagnostics.map((d) => [d.ruleId, d.file, d.edge?.target])).toEqual([
+      ["no-controller-to-repository", "src/controllers/refund.controller.ts", "src/repositories/order.repository.ts"],
+    ]);
+    expect(fresh.counts.suppressedByBaseline).toBe(0);
   });
 
   test("determinism: a second run gives byte-identical reports and identities", async () => {

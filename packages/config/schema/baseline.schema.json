@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://engintel.dev/schema/baseline.v1.json",
+  "title": "EngIntel architecture baseline",
+  "description": "Human-owned ledger of existing architecture violations (.engintel/baseline.json). The reference loader also rejects duplicate identities, lastSeenAt before firstSeenAt, agent or bot authors, identities that do not recompute from their fields, and fail-closed rule ids that can never be baselined.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "engineIdentityVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "policyVersionAtWrite": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "writtenAt": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+    },
+    "writtenBy": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9]|-(?=[A-Za-z0-9])){0,38}$"
+    },
+    "notes": {
+      "type": "string",
+      "maxLength": 4000
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "identity": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "ruleId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": "^[A-Za-z0-9@][A-Za-z0-9._:/@-]*$"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!\\/)(?!.*[\\\\:])(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))[^\\0]+$"
+              },
+              {
+                "type": "string",
+                "pattern": "^(external|core|unresolved):\\S.*$"
+              },
+              {
+                "type": "string",
+                "pattern": "^<[a-z][a-z-]*>$"
+              }
+            ]
+          },
+          "target": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!\\/)(?!.*[\\\\:])(?!.*\\/\\/)(?!.*\\/$)(?!(?:.*\\/)?\\.\\.?(?:\\/|$))[^\\0]+$"
+              },
+              {
+                "type": "string",
+                "pattern": "^(external|core|unresolved):\\S.*$"
+              },
+              {
+                "type": "string",
+                "pattern": "^<[a-z][a-z-]*>$"
+              }
+            ]
+          },
+          "cycleSignature": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "firstSeenAt": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "lastSeenAt": {
+            "type": "string",
+            "format": "date",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+          },
+          "owner": {
+            "type": "string",
+            "pattern": "^@[A-Za-z0-9][A-Za-z0-9-]*(?:\\/[A-Za-z0-9._-]+)?$"
+          },
+          "ticket": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "justification": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "identity",
+          "ruleId",
+          "source",
+          "target",
+          "cycleSignature",
+          "firstSeenAt",
+          "lastSeenAt"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "engineIdentityVersion",
+    "policyVersionAtWrite",
+    "writtenAt",
+    "writtenBy",
+    "entries"
+  ],
+  "additionalProperties": false
+}

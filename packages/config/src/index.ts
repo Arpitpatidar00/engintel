@@ -87,3 +87,21 @@ export {
   type LoadedConfig,
   type ResolvedConfig,
 } from "./engintel-config.js";
+
+export {
+  AGENT_AUTHORS,
+  BASELINE_IDENTITY_VERSION,
+  BASELINE_PATH,
+  BASELINE_SCHEMA_VERSION,
+  BaselineEntrySchema,
+  BaselineFileSchema,
+  baselineJsonSchema,
+  isAgentAuthor,
+  loadBaseline,
+  parseBaseline,
+  parseBaselineText,
+  serializeBaseline,
+  type BaselineEntry,
+  type BaselineFile,
+  type LoadedBaseline,
+} from "./baseline.js";

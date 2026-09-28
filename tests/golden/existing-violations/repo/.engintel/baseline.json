@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "engineIdentityVersion": 1,
+  "policyVersionAtWrite": "1.0.0",
+  "writtenAt": "2026-03-02",
+  "writtenBy": "fixture-owner",
+  "notes": "Golden fixture: the three legacy violations listed in tests/golden/GOLDEN.md.",
+  "entries": [
+    {
+      "identity": "770e0063137a6c3939a5422cef717ae02504aa262f16d54068b1267f7a23653e",
+      "ruleId": "no-controller-to-repository",
+      "source": "src/controllers/legacy-billing.controller.ts",
+      "target": "src/repositories/order.repository.ts",
+      "cycleSignature": null,
+      "firstSeenAt": "2026-03-02",
+      "lastSeenAt": "2026-03-02"
+    },
+    {
+      "identity": "82a32e6e1af62a71cb54d448b34d084d6203ae50dd16af37d4045ef34459f82f",
+      "ruleId": "no-upward-from-domain",
+      "source": "src/domain/money.ts",
+      "target": "src/services/order.service.ts",
+      "cycleSignature": null,
+      "firstSeenAt": "2026-03-02",
+      "lastSeenAt": "2026-03-02"
+    },
+    {
+      "identity": "bd18cd1d36cb2c170a58a9f44a29a98ca4206a3bf5a16adc4256973f7ffaffe4",
+      "ruleId": "no-repository-upward",
+      "source": "src/repositories/invoice.repository.ts",
+      "target": "src/services/order.service.ts",
+      "cycleSignature": null,
+      "firstSeenAt": "2026-03-02",
+      "lastSeenAt": "2026-03-02"
+    }
+  ]
+}

@@ -20,6 +20,18 @@ export interface ContractSummary {
   readonly contractHash: string;
 }
 
+export interface BaselineSection {
+  readonly file: string;
+  /** "merge-base" for pull requests: the PR's own baseline edits cannot hide its debt. */
+  readonly comparedWith: "working-copy" | "merge-base";
+  /** Entries in the baseline compared against. */
+  readonly entries: number;
+  /** Findings suppressed because their identity is baselined. */
+  readonly suppressed: number;
+  /** Baselined identities that no longer occur (full runs only; null for --changed). */
+  readonly stale: readonly string[] | null;
+}
+
 export interface ValidationReport {
   readonly schemaVersion: typeof REPORT_SCHEMA_VERSION;
   readonly command: "validate";
@@ -34,6 +46,8 @@ export interface ValidationReport {
   readonly contract: ContractSummary;
   readonly repository: { readonly treeHash: string };
   readonly counts: EvaluationResult["counts"];
+  /** null when the repository has no baseline. */
+  readonly baseline: BaselineSection | null;
   readonly diagnostics: readonly Diagnostic[];
   readonly exceptionsApplied: EvaluationResult["exceptionsApplied"];
   readonly unanalyzable: EvaluationResult["unanalyzable"];
